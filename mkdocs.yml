@@ -1,0 +1,10 @@
+site_name: redcmd
+
+dev_addr: 0.0.0.0:8090
+
+pages:
+- 'index.md'
+- Installation: 'install.md'
+- Basic Usage: 'usage.md'
+- Change Log: 'changelog.md'
+
