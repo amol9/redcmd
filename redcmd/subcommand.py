@@ -4,11 +4,6 @@ from .command import Command
 from mutils.misc import docstring
 
 
-def subcmd(func):
-	func.subcmd = True
-	return func
-
-
 class SubcmdFunc:
 	def __init__(self, subcmd, func, arg_names):
 		self.subcmd 	= subcmd
@@ -20,18 +15,6 @@ class SubcmdFunc:
 		arg_list = [getattr(args, name) for name in self.arg_names]
 		self.func(self.subcmd, *arg_list)
 
-
-class Choices:
-	def __init__(self, list, default=None, opt=False):
-		self.list = list
-		assert default is None or self.list.index(default) >= 0
-		self.default = default
-		self.opt = opt
-
-	
-class PositionalArg:
-	def __init__(self, nargs=None):
-		self.nargs = nargs
 
 
 class Subcommand(Command):
@@ -122,4 +105,7 @@ class Subcommand(Command):
 
 					if not subcmd.subparsers:
 						parser.set_defaults(subcmd_func=SubcmdFunc(subcmd, func, argspec.args))
+
+
+	def add_subcommand_func(self, subcmd_func):
 

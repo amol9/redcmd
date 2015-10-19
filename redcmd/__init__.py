@@ -1,3 +1,6 @@
 from .subcommand import Subcommand
-from .command import Command
+from .maincommand import MainCommand
+from .commandline import CommandLine
+from .decorators import subcmd, maincmd
+from .arg import Arg
 
