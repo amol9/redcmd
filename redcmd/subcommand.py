@@ -1,19 +1,11 @@
 import inspect
 
-from .command import Command
 from mutils.misc import docstring
 
+from .command import Command
+from . import CommandCollection
+from .exc import SubcommandError
 
-class SubcmdFunc:
-	def __init__(self, subcmd, func, arg_names):
-		self.subcmd 	= subcmd
-		self.func 	= func
-		self.arg_names	= arg_names
-
-	
-	def execute(self, args):
-		arg_list = [getattr(args, name) for name in self.arg_names]
-		self.func(self.subcmd, *arg_list)
 
 
 
@@ -30,9 +22,6 @@ class Subcommand:
 
 
 	def add_subcommands(self, subcmd_cls):
-		subcmd = subcmd_cls(parser)
-		if subcmd.subcommands_added():
-			return
 
 		command_collection = CommandCollection()
 		subcmd_parser = None
@@ -48,11 +37,13 @@ class Subcommand:
 
 				
 					subcmd_parser = command_collection.add_subcommand(
-								func, 
+								func,
+								cmd_class=subcmd_cls,
 								parent=self.parser,
 								group_name=self.__class__.__name__,
 								parser=subcmd_parser)
 
+					subcmd = subcmd_cls(subcmd_parser)
 					self._subcommands += 1
 
 

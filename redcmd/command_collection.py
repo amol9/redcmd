@@ -10,7 +10,7 @@ class _CommandCollection:
 		self.argparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
 		
 
-	def add_subcommand(self, func, parent=None, group_name=None, parser=None):
+	def add_subcommand(self, func, cmd_cls=None, parent=None, group_name=None, parser=None):
 		subparsers = parent._subparsers
 
 		if subparsers is None:
@@ -34,22 +34,25 @@ class _CommandCollection:
 					else:
 						subparsers = parser._subparsers
 
-		return self.add_function(func, subparsers)
-		
-			
+		return self.add_function(func, cmd_cls, subparsers)
 
-	def add_function(self, func, subparsers):
+
+	def add_function_to_subparsers(self, func, cmd_cls, subparsers):
 		if func.__name__ in parser._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
-
-		funcdoc = func.__doc__ if func.__doc__ is not None else ''
+		
 		help_strings = docstring.extract_help(func)
 
 		parser = subparsers.add_parser(func.__name__,
 				prog=self.parser.prog + ' ' + func.__name__,
-				formatter_class=self.parser.formatter_class,
+				formatter_class=self.argparser.formatter_class,
 				description=help_strings.get('help', None))
-		subcmd = subcmd_cls(parser)
+
+		self.add_function_to_parser(func, cmd_cls, parser)
+			
+
+	def add_function_to_parser(self, func, cmd_cls, parser):
+		help_strings = docstring.extract_help(func)
 
 		argspec = inspect.getargspec(func)
 		assert argspec.args[0] == 'self'
@@ -59,7 +62,6 @@ class _CommandCollection:
 			default_offset = len(argspec.args) - len(argspec.defaults)
 		else:
 			default_offset = len(argspec.args)
-
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
@@ -100,14 +102,20 @@ class _CommandCollection:
 			if extrahelp is not None:
 				parser.set_extrahelp(extrahelp)
 
-		if not subcmd.subparsers:
-			parser.set_defaults(subcmd_func=SubcmdFunc(subcmd, func, argspec.args))
+		#if not subcmd.subparsers:
+		parser.set_defaults(subcmd_func=CmdFunc(cmd_cls, func, argspec.args))
 
 	return parser
 
 
 	def add_maincommand(self, func):
-		pass
+		if self.argparser._subparsers is not None:
+			raise CommandCollectionError('cannot add main command when subcommands are also added')
+
+		if self.argparser.get_default('subcmd_func', None) is not None:
+			raise CommandCollectionError('main command already added')
+
+		self.add_function_to_parser(func, self.argparser)
 
 
 class CommandCollection(Singleton):

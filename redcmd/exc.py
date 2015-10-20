@@ -11,7 +11,7 @@ class SubcommandError(Exception):
 	pass
 
 
-class Maincommand(Exception):
+class MaincommandError(Exception):
 	pass
 
 
