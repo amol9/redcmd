@@ -17,21 +17,25 @@ class SubcmdFunc:
 
 
 
-class Subcommand(Command):
+class Subcommand:
 	def __init__(self, parser):
 		self.parser = parser
-		self.subparsers = None
-		self.add_subcommands()
+		self.add_subcommand_groups()
+		self._subcommands = 0
 
 
-	def add_subcommands(self):
+	def add_subcommand_groups(self):
 		for subcmd_cls in self.__class__.__subclasses__():
-			self.add_subcommand(subcmd_cls)
+			self.add_subcommands(subcmd_cls)
 
 
-	def add_subcommand(self, subcmd_cls):
-		if self.subparsers is None:
-			self.subparsers = self.parser.add_subparsers(dest=self.__class__.__name__.lower())
+	def add_subcommands(self, subcmd_cls):
+		subcmd = subcmd_cls(parser)
+		if subcmd.subcommands_added():
+			return
+
+		command_collection = CommandCollection()
+		subcmd_parser = None
 
 		for member_name, member_val in inspect.getmembers(subcmd_cls, predicate=\
 		lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
@@ -42,70 +46,16 @@ class Subcommand(Command):
 					if not func.__name__ in subcmd_cls.__dict__.keys():
 						continue
 
-					if func.__name__ in self.subparsers._name_parser_map:
-						raise SubcommandError('added subcommand %s again'%func.__name__)
+				
+					subcmd_parser = command_collection.add_subcommand(
+								func, 
+								parent=self.parser,
+								group_name=self.__class__.__name__,
+								parser=subcmd_parser)
 
-					funcdoc = func.__doc__ if func.__doc__ is not None else ''
-					help_strings = docstring.extract_help(func)
-
-					parser = self.subparsers.add_parser(func.__name__,
-							prog=self.parser.prog + ' ' + func.__name__,
-							formatter_class=self.parser.formatter_class,
-							description=help_strings.get('help', None))
-					subcmd = subcmd_cls(parser)
-
-					argspec = inspect.getargspec(func)
-					assert argspec.args[0] == 'self'
-					del argspec.args[0]
-
-					if argspec.defaults is not None:
-						default_offset = len(argspec.args) - len(argspec.defaults)
-					else:
-						default_offset = len(argspec.args)
+					self._subcommands += 1
 
 
-					for arg in argspec.args:
-						arg_index = argspec.args.index(arg)
-
-						default = None
-						names 	= None
-						choices = None
-						nargs	= None
-						if arg_index >= default_offset:
-							default = argspec.defaults[arg_index - default_offset]
-							names = ['-' + arg[0], '--' + arg]
-
-							if default.__class__ == Choices:
-								choices_obj = default
-								choices = choices_obj.list
-								default = choices_obj.default
-								if default is None and not choices_obj.opt:
-									names = [arg]
-							elif default.__class__ == PositionalArg:
-								nargs = default.nargs
-								default = None
-								names = [arg]
-	
-						else:
-							names = [arg]
-
-						kwargs = {
-						'default'	: default,
-						'choices'	: choices,
-						'help'		: help_strings.get(arg, None)
-						}
-
-						if nargs is not None:
-							kwargs['nargs'] = nargs
-						parser.add_argument(*names, **kwargs)
-						
-						extrahelp = getattr(func, '__extrahelp__', None)
-						if extrahelp is not None:
-							parser.set_extrahelp(extrahelp)
-
-					if not subcmd.subparsers:
-						parser.set_defaults(subcmd_func=SubcmdFunc(subcmd, func, argspec.args))
-
-
-	def add_subcommand_func(self, subcmd_func):
+	def subcommands_added(self):
+		return self._subcommands > 0
 

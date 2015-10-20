@@ -1,6 +1,6 @@
 
 
 
-class MainCommand:
+class Maincommand:
 	pass
 

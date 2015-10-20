@@ -1,7 +1,6 @@
 import sys
 
-from .exc import CommandError
-from . import CommandCollection
+from .exc import CommandError, SubcommandError, MaincommandError, CommandCollectionError
 
 
 class CommandLine(object):
@@ -11,11 +10,16 @@ class CommandLine(object):
 		self.commandcollection = CommandCollection(prog=prog, description=description, version=version)
 
 		self.default_subcommand = None
+		self.add_commands()
+
+	
+	def add_commands(self):
 		try:
-			self.add_commands()
-		except CommandCollectionError as e:
+			subcommand = Subcommand()
+			maincommand = Maincommand()
+		except (SubcommandError, MaincommandError, CommandCollectionError) as e:
 			print(e)
-			raise CommandLineError()
+			raise CommandLineError('error creating command line structure')
 
 	
 	def execute(self):
