@@ -3,6 +3,7 @@ from .mutils.misc import Singleton
 
 from .command_help_formatter import CommandHelpFormatter
 from .commandparser import CommandParser
+from .arg import Arg
 
 
 class _CommandCollection:
@@ -40,8 +41,6 @@ class _CommandCollection:
 								parser=subcmd_parser)
 
 					self.add_subcommand_class(subcmd_cls, subcmd_parser)
-
-
 		
 
 	def add_subcommand(self, func, cmd_cls=None, parent=None, group_name=None, parser=None):
@@ -89,43 +88,40 @@ class _CommandCollection:
 		help_strings = docstring.extract_help(func)
 
 		argspec = inspect.getargspec(func)
-		assert argspec.args[0] == 'self'
-		del argspec.args[0]
+		if cmd_cls is not None:
+			del argspec.args[0]
 
 		if argspec.defaults is not None:
-			default_offset = len(argspec.args) - len(argspec.defaults)
+			defaults_offset = len(argspec.args) - len(argspec.defaults)
 		else:
-			default_offset = len(argspec.args)
+			defaults_offset = len(argspec.args)
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
 
-			default = None
-			names 	= None
-			choices = None
+			default = None				#add auto shortening
+			names 	= None				
+			choices = None				#func doc more help
 			nargs	= None
-			if arg_index >= default_offset:
-				default = argspec.defaults[arg_index - default_offset]
+			if arg_index >= defaults_offset:
+				arg_default = argspec.defaults[arg_index - defaults_offset]
 				names = ['-' + arg[0], '--' + arg]
 
-				if default.__class__ == Choices:
-					choices_obj = default
-					choices = choices_obj.list
-					default = choices_obj.default
-					if default is None and not choices_obj.opt:
+				if arg_default.__class__ == Arg:
+					choices = arg_default.choices
+					default = arg_default.default
+					nargs 	= arg_default.nargs
+
+					if (default is None and not arg_default.opt) or arg_default.pos:
 						names = [arg]
-				elif default.__class__ == PositionalArg:
-					nargs = default.nargs
-					default = None
-					names = [arg]
 
 			else:
-				names = [arg]
+				names = [arg]		#positional argument
 
 			kwargs = {
-			'default'	: default,
-			'choices'	: choices,
-			'help'		: help_strings.get(arg, None)
+				'default'	: default,
+				'choices'	: choices,
+				'help'		: help_strings.get(arg, None)
 			}
 
 			if nargs is not None:
