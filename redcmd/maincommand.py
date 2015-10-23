@@ -1,5 +1,5 @@
 
 #placeholder class for main command class to derive from
-class Maincommand:
+class Maincommand(object):
 	pass
 

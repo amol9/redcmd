@@ -1,14 +1,14 @@
 import inspect
 
-from . import CommandCollection
+from .command_collection import CommandCollection
 from .exc import CommandCollectionError, MaincommandError, SubcommandError, CommandLineError
+from .maincommand import Maincommand
+from .subcommand import Subcommand
 
 
 def subcmd(parent=None):
 	def subcmd_dec(func):
-		cls = get_class_from_func(func)
-
-		if issubclass(cls, Subcommand):
+		if member_of_a_class(func): 
 			func.subcmd = True
 			return func
 
@@ -23,17 +23,17 @@ def subcmd(parent=None):
 	return subcmd_dec
 
 
-def get_class_from_func(func):
-	for cls in inspect.getmro(func.im_class):
-		if func.__name__ in cls.__dict__:
-			return cls
-	return None
+def member_of_a_class(func):
+	argspec = inspect.getargspec(func)
+
+	if len(argspec.args) == 0:
+		return False
+
+	return argspec.args[0] == 'self'
 
 
 def maincmd(func):
-	cls = get_class_from_func(func)
-
-	if issubclass(cls, Maincommand):
+	if member_of_a_class(func):
 		func.maincmd = True
 		return func
 

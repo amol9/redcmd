@@ -1,5 +1,5 @@
 
 #placeholder class for subcommand classes to derive from
-class Subcommand:
+class Subcommand(object):
 	pass
 	

@@ -69,8 +69,9 @@ class CommandHelpFormatter(HelpFormatter):
 				return lines
 
 			help_lines = []
-			for help_line in helptext.split('\n'):
-				help_lines += wrap(help_line.strip())
+			if helptext is not None:
+				for help_line in helptext.split('\n'):
+					help_lines += wrap(help_line.strip())
 
 			if choices is not None:
 				choices = 'choices: ' + ', '.join(choices)

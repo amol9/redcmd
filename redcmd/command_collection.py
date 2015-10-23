@@ -1,20 +1,31 @@
+import inspect
 
-from .mutils.misc import Singleton
+from mutils.misc import Singleton, docstring
 
 from .command_help_formatter import CommandHelpFormatter
 from .commandparser import CommandParser
 from .arg import Arg
+from .cmdfunc import CmdFunc
+from .maincommand import Maincommand
+from .subcommand import Subcommand
 
 
 class _CommandCollection:
-	def __init__(self, prog=None, description=None, version=None):
-		self.argparser = CommandParser(prog=prog, description=description, formatter_class=CommandHelpFormatter)
-		self.argparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
+	def __init__(self):
+		self._cmdparser = CommandParser(formatter_class=CommandHelpFormatter)
+
+
+	def set_details(self, prog=None, description=None, version=None):
+		self._cmdparser.prog = prog
+		self._cmdparser.description = description
+
+		if version is not None:
+			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
 
 	
 	def add_commands(self):
 		self.add_maincommand_class(Maincommand)
-		self.add_subcommand_class(Subcommand)
+		self.add_subcommand_class(Subcommand, self._cmdparser)
 
 
 
@@ -48,14 +59,14 @@ class _CommandCollection:
 
 		if subparsers is None:
 			if parent is None:
-				subparsers = self.argparser.add_subparsers(group_name)
+				subparsers = self._cmdparser.add_subparsers(group_name)
 			else:
 				if issubclass(parent, ArgumentParser):
 					subparsers = parent.add_subparsers(group_name)
 				elif type(parent) == str:
 					#break the string, lookup the subparser and add to it
 					parts = parent.split()
-					parser = self.argparser
+					parser = self._cmdparser
 					for part in parts:
 						if parser._subparsers is None:
 							raise CommandCollectionError()
@@ -74,18 +85,18 @@ class _CommandCollection:
 		if func.__name__ in parser._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
 		
-		help_strings = docstring.extract_help(func)
+		help = docstring.extract_help(func)
 
 		parser = subparsers.add_parser(func.__name__,
 				prog=self.parser.prog + ' ' + func.__name__,
-				formatter_class=self.argparser.formatter_class,
-				description=help_strings.get('help', None))
+				formatter_class=self._cmdparser.formatter_class,
+				description=help.get('short', None))
 
 		self.add_function_to_parser(func, cmd_cls, parser)
 			
 
 	def add_function_to_parser(self, func, cmd_cls, parser):
-		help_strings = docstring.extract_help(func)
+		help = docstring.extract_help(func)
 
 		argspec = inspect.getargspec(func)
 		if cmd_cls is not None:
@@ -101,7 +112,7 @@ class _CommandCollection:
 
 			default = None				#add auto shortening
 			names 	= None				
-			choices = None				#func doc more help
+			choices = None				
 			nargs	= None
 			if arg_index >= defaults_offset:
 				arg_default = argspec.defaults[arg_index - defaults_offset]
@@ -121,21 +132,21 @@ class _CommandCollection:
 			kwargs = {
 				'default'	: default,
 				'choices'	: choices,
-				'help'		: help_strings.get(arg, None)
+				'help'		: help.get(arg, None)
 			}
 
 			if nargs is not None:
 				kwargs['nargs'] = nargs
 			parser.add_argument(*names, **kwargs)
 			
-			extrahelp = getattr(func, '__extrahelp__', None)
+			extrahelp = help.get('extra', None)
 			if extrahelp is not None:
 				parser.set_extrahelp(extrahelp)
 
 		#if not subcmd.subparsers:
 		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args))
 
-	return parser
+		return parser
 
 
 	def add_maincommand_class(self, cls):
@@ -148,7 +159,7 @@ class _CommandCollection:
 
 		maincmd_cls = subclasses[0]
 
-		for member_name, member_val in inspect.getmembers(subcmd_cls, predicate=\
+		for member_name, member_val in inspect.getmembers(maincmd_cls, predicate=\
 		lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
 
 			func = member_val
@@ -157,17 +168,17 @@ class _CommandCollection:
 
 
 	def add_maincommand(self, func, cmd_cls=None):
-		if self.argparser._subparsers is not None:
+		if self._cmdparser._subparsers is not None:
 			raise CommandCollectionError('cannot add main command when subcommands are also added')
 
-		if self.argparser.get_default('cmd_func', None) is not None:
+		if self._cmdparser.get_default('cmd_func') is not None:
 			raise CommandCollectionError('main command already added')
 
-		self.add_function_to_parser(func, self.argparser, cmd_cls=cmd_cls)
+		self.add_function_to_parser(func, cmd_cls, self._cmdparser)
 
 
 	def execute(self):
-		args = self.argparser.parse_args()
+		args = self._cmdparser.parse_args()
 		try:
 			cmd_func = args.cmd_func
 			cmd_func.execute(args)

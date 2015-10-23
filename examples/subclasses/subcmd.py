@@ -1,5 +1,5 @@
 
-from redcmd import CommandLine, CommandLineError, Subcommand, maincmd
+from redcmd import CommandLine, CommandLineError, Subcommand, subcmd
 
 
 class MySubcommands(Subcommand):
