@@ -6,7 +6,7 @@ from .maincommand import Maincommand
 from .subcommand import Subcommand
 
 
-def subcmd(parent=None):
+def subcmd(func=None, parent=None):
 	def subcmd_dec(func):
 		if member_of_a_class(func): 
 			func.subcmd = True
@@ -20,7 +20,10 @@ def subcmd(parent=None):
 			raise CommandLineError('error creating command line structure')
 
 		return func
-	return subcmd_dec
+	if func is None:
+		return subcmd_dec
+	else:
+		return subcmd_dec(func)
 
 
 def member_of_a_class(func):

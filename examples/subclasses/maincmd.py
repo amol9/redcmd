@@ -7,8 +7,13 @@ class MyMainCommand(Maincommand):
 	@maincmd
 	def main(self, a, b, color=Arg(choices=['red', 'blue', 'green'])):
 		'''Add two numbers. 
-		a: first number
-		b: second number'''
+		a: 	first number
+		b: 	second number
+		color: 	color name
+			please specify one
+
+		This is where extra help text goes.
+		It can be more than one line.'''
 
 		try:
 			print('sum: %d'%(int(a) + int(b)))

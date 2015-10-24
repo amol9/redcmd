@@ -108,8 +108,8 @@ class CommandHelpFormatter(HelpFormatter):
 				help += format_action(p.dest, p.help, p.choices, p.default)
 				usage += '%s '%p.dest
 
-			if self._extrahelp is not None:
-				help += os.linesep + docstring.trim(self._extrahelp)
+		if self._extrahelp is not None:
+			help += os.linesep + docstring.trim(self._extrahelp)
 
 		usage += os.linesep + os.linesep
 		if help == '':

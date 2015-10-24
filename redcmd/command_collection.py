@@ -1,4 +1,5 @@
 import inspect
+from argparse import ArgumentParser, _SubParsersAction
 
 from mutils.misc import Singleton, docstring
 
@@ -28,7 +29,6 @@ class _CommandCollection:
 		self.add_subcommand_class(Subcommand, self._cmdparser)
 
 
-
 	def add_subcommand_class(self, cls, parser):
 		for subcmd_cls in cls.__subclasses__():
 			self.add_subcommand_group(subcmd_cls, parser)
@@ -46,23 +46,27 @@ class _CommandCollection:
 
 					subcmd_parser = self.add_subcommand(
 								func,
-								cmd_class=subcmd_cls,
-								parent=self.parser,
-								group_name=self.__class__.__name__,
-								parser=subcmd_parser)
+								cmd_cls=subcmd_cls,
+								parent=parser,
+								group_name=subcmd_cls.__name__.lower())
 
 					self.add_subcommand_class(subcmd_cls, subcmd_parser)
 		
 
-	def add_subcommand(self, func, cmd_cls=None, parent=None, group_name=None, parser=None):
+	def add_subcommand(self, func, cmd_cls=None, parent=None, group_name=None):
 		subparsers = parent._subparsers
+		spa = None
 
 		if subparsers is None:
 			if parent is None:
-				subparsers = self._cmdparser.add_subparsers(group_name)
+				spa = self._cmdparser.add_subparsers(dest=group_name)
 			else:
-				if issubclass(parent, ArgumentParser):
-					subparsers = parent.add_subparsers(group_name)
+				if issubclass(parent.__class__, ArgumentParser):
+					spa = parent.add_subparsers(dest=group_name)
+
+					if parent._defaults.get('cmd_func', None) is not None:
+						del parent._defaults['cmd_func']
+
 				elif type(parent) == str:
 					#break the string, lookup the subparser and add to it
 					parts = parent.split()
@@ -74,25 +78,32 @@ class _CommandCollection:
 						parser = parser._subparsers._name_parser_map.get(part, None)
 					
 					if parser._subparsers is None:
-						subparsers = parser.add_subparsers(parts[-1] + 'subcommand')
+						spa = parser.add_subparsers(dest=parts[-1] + 'subcommand')
 					else:
 						subparsers = parser._subparsers
 
-		return self.add_function(func, cmd_cls, subparsers)
+
+		else:
+			spa = subparsers._group_actions[0]
+	
+		return self.add_function_to_subparsers(func, cmd_cls, spa)
 
 
-	def add_function_to_subparsers(self, func, cmd_cls, subparsers):
-		if func.__name__ in parser._name_parser_map:
+	def add_function_to_subparsers(self, func, cmd_cls, spa):
+		assert spa.__class__ == _SubParsersAction
+
+		if func.__name__ in spa._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
 		
 		help = docstring.extract_help(func)
 
-		parser = subparsers.add_parser(func.__name__,
-				prog=self.parser.prog + ' ' + func.__name__,
+		parser = spa.add_parser(func.__name__,
+				prog=self._cmdparser.prog + ' ' + func.__name__,
 				formatter_class=self._cmdparser.formatter_class,
 				description=help.get('short', None))
 
 		self.add_function_to_parser(func, cmd_cls, parser)
+		return parser
 			
 
 	def add_function_to_parser(self, func, cmd_cls, parser):
@@ -139,14 +150,14 @@ class _CommandCollection:
 				kwargs['nargs'] = nargs
 			parser.add_argument(*names, **kwargs)
 			
-			extrahelp = help.get('extra', None)
-			if extrahelp is not None:
-				parser.set_extrahelp(extrahelp)
+		longhelp = help.get('long', '')		# help text following the param help strings in the doc string
+		extrahelp = help.get('extra', '')	# help text added to function dictionary in attribute: __extrahelp__
+
+		if len(longhelp + extrahelp) > 0:
+			parser.set_extrahelp(longhelp + extrahelp)
 
 		#if not subcmd.subparsers:
 		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args))
-
-		return parser
 
 
 	def add_maincommand_class(self, cls):
