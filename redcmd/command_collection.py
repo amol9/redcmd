@@ -9,6 +9,7 @@ from .arg import Arg
 from .cmdfunc import CmdFunc
 from .maincommand import Maincommand
 from .subcommand import Subcommand
+from .exc import CommandCollectionError
 
 
 class _CommandCollection:
@@ -54,37 +55,37 @@ class _CommandCollection:
 		
 
 	def add_subcommand(self, func, cmd_cls=None, parent=None, group_name=None):
+		if parent is None:
+			parent = self._cmdparser
+
+		elif issubclass(parent.__class__, CommandParser):
+			pass
+
+		elif type(parent) == str:
+			#break the string, lookup the subparser and add to it
+			parts = parent.split()
+			parent = self._cmdparser
+			for part in parts:
+				if parent._subparsers is None:
+					raise CommandCollectionError('trying to add subcommands to a non-existant subcommand')
+
+				parent = parent._subparsers._group_actions[0]._name_parser_map.get(part, None)
+
+				if parent is None:
+					raise CommandCollectionError('no such subcommand: %s'%' '.join(parts))
+			
 		subparsers = parent._subparsers
 		spa = None
-
+		group_name = group_name if group_name is not None else 'subcommand'
+		
 		if subparsers is None:
-			if parent is None:
-				spa = self._cmdparser.add_subparsers(dest=group_name)
-			else:
-				if issubclass(parent.__class__, ArgumentParser):
-					spa = parent.add_subparsers(dest=group_name)
+			spa = parent.add_subparsers(dest=group_name)
 
-					if parent._defaults.get('cmd_func', None) is not None:
-						del parent._defaults['cmd_func']
-
-				elif type(parent) == str:
-					#break the string, lookup the subparser and add to it
-					parts = parent.split()
-					parser = self._cmdparser
-					for part in parts:
-						if parser._subparsers is None:
-							raise CommandCollectionError()
-
-						parser = parser._subparsers._name_parser_map.get(part, None)
-					
-					if parser._subparsers is None:
-						spa = parser.add_subparsers(dest=parts[-1] + 'subcommand')
-					else:
-						subparsers = parser._subparsers
-
+			if parent._defaults.get('cmd_func', None) is not None:
+				del parent._defaults['cmd_func']
 
 		else:
-			spa = subparsers._group_actions[0]
+			spa = subparsers._group_actions[0]	
 	
 		return self.add_function_to_subparsers(func, cmd_cls, spa)
 

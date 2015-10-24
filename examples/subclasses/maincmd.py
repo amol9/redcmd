@@ -23,6 +23,7 @@ class MyMainCommand(Maincommand):
 
 		print(color)
 
+
 if __name__ == '__main__':
 	cmdline = CommandLine()
 	try:
