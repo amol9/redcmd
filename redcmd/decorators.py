@@ -4,7 +4,7 @@ from .command_collection import CommandCollection
 from .exc import CommandCollectionError, MaincommandError, SubcommandError, CommandLineError
 from .maincommand import Maincommand
 from .subcommand import Subcommand
-import const
+from . import const
 
 
 def subcmd(func=None, parent=None):
@@ -21,6 +21,7 @@ def subcmd(func=None, parent=None):
 			raise CommandLineError('error creating command line structure')
 
 		return func
+
 	if func is None:
 		return subcmd_dec
 	else:
@@ -38,7 +39,7 @@ def member_of_a_class(func):
 
 def maincmd(func):
 	if member_of_a_class(func):
-		func.__dict__[maincmd_attr] = True
+		func.__dict__[const.maincmd_attr] = True
 		return func
 
 	command_collection = CommandCollection()

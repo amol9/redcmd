@@ -6,7 +6,7 @@ class MyMainCommand(Maincommand):
 
 	@maincmd
 	def main(self, a, b, color=Arg(choices=['red', 'blue', 'green'])):
-		'''Add two numbers. 
+		'''Add two numbers. Print the name of the specified color.
 		a: 	first number
 		b: 	second number
 		color: 	color name

@@ -10,7 +10,7 @@ from .cmdfunc import CmdFunc
 from .maincommand import Maincommand
 from .subcommand import Subcommand
 from .exc import CommandCollectionError
-import const
+from . import const
 
 
 # Notes

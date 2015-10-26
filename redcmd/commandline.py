@@ -2,7 +2,7 @@ import sys
 
 from .exc import CommandError, CommandCollectionError
 from .command_collection import CommandCollection
-import const
+from . import const
 
 
 class CommandLine(object):
