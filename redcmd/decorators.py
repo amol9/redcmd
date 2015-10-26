@@ -4,12 +4,13 @@ from .command_collection import CommandCollection
 from .exc import CommandCollectionError, MaincommandError, SubcommandError, CommandLineError
 from .maincommand import Maincommand
 from .subcommand import Subcommand
+import const
 
 
 def subcmd(func=None, parent=None):
 	def subcmd_dec(func):
 		if member_of_a_class(func): 
-			func.subcmd = True
+			func.__dict__[const.subcmd_attr] = True
 			return func
 
 		command_collection = CommandCollection()
@@ -37,7 +38,7 @@ def member_of_a_class(func):
 
 def maincmd(func):
 	if member_of_a_class(func):
-		func.maincmd = True
+		func.__dict__[maincmd_attr] = True
 		return func
 
 	command_collection = CommandCollection()

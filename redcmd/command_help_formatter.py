@@ -79,7 +79,7 @@ class CommandHelpFormatter(HelpFormatter):
 			choices_lines = wrap(choices)
 
 			if not default in [None, SUPPRESS] :
-				default = 'default: ' + default
+				default = 'default: ' + str(default)
 			else:
 				default = None
 			
