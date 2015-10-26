@@ -18,7 +18,7 @@ setup(
 	packages		= find_packages(),
 	include_package_data	= True,
 	scripts			= ['ez_setup.py'],
-	install_requires	= [],
+	install_requires	= ['mutils>=1.0.5'],
 	classifiers		= [
 					'Development Status :: 4 - Beta',
 					'Environment :: Console',
@@ -26,7 +26,8 @@ setup(
 					'Natural Language :: English',
 					'Operating System :: POSIX :: Linux',
 					'Programming Language :: Python :: 2.7',
-					'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+					'Programming Language :: Python :: 3.4',
+					'Topic :: Software Development :: Libraries :: Application Frameworks'
 				]
 )
 
