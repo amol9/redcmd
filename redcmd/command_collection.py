@@ -53,6 +53,9 @@ class _CommandCollection:
 		if version is not None:
 			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
 
+
+	def make_option_tree(self, 
+
 	
 	def add_commands(self):		# to be called from class CommandLine to add subclass members of Maincommand and Subcommand
 		self.add_maincommand_class(Maincommand)
