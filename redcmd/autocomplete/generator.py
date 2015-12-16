@@ -1,9 +1,9 @@
 
-class CompGenError(Exception):
+class GenError(Exception):
 	pass
 
 
-class CompGen:
+class Generator:
 
 	def __init__(self, command_line, word):
 		self._command_line = command_line

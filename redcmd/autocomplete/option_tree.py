@@ -34,7 +34,13 @@ class OptionTree:
 
 		if self._root is None:
 			self._root = node
-			self.push(node)
+		else:
+			is self._stack is None:
+				raise OptionTreeError('option tree creation error: stack empty')
+				
+			self._stack[-1].add_child(node)
+
+		self.push(node)
 
 		
 	def push(self, node):

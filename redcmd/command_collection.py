@@ -44,6 +44,7 @@ class _CommandCollection:
 
 	def __init__(self):
 		self._cmdparser = CommandParser(formatter_class=CommandHelpFormatter)
+		self._optiontree = None
 
 
 	def set_details(self, prog=None, description=None, version=None):
@@ -54,7 +55,13 @@ class _CommandCollection:
 			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
 
 
-	def make_option_tree(self, 
+	def make_option_tree(self, command_name=None):
+		command_name = self._cmdparser.prog if command_name is None
+		if command_name is None:
+			raise CommandCollectionError('cannot create option tree without a command name')
+
+		self._optiontree = OptionTree()
+		self.add_node(Node(command_name)) 
 
 	
 	def add_commands(self):		# to be called from class CommandLine to add subclass members of Maincommand and Subcommand
@@ -63,11 +70,14 @@ class _CommandCollection:
 
 
 	def add_subcommand_classes(self, cls, parser):
+		subcmd_added = False
 		for subcmd_cls in cls.__subclasses__():
-			self.add_subcommand_group(subcmd_cls, parser)
+			subcmd_added |= self.add_subcommand_group(subcmd_cls, parser)
+		return subcmd_added
 
 
 	def add_subcommand_group(self, subcmd_cls, parser):
+		subcmd_added = False
 		for member_name, member_val in inspect.getmembers(subcmd_cls, predicate=\
 		lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
 
@@ -82,8 +92,14 @@ class _CommandCollection:
 								cmd_cls=subcmd_cls,
 								parent=parser,
 								group_name=subcmd_cls.__name__.lower())
+					subcmd_added = True
+					self._optiontree.add_node(Node(func.__name__))
+			
+					if self.add_subcommand_classes(subcmd_cls, subcmd_parser):
+						self._optiontree.pop()
+					self._optiontree.pop()
 
-					self.add_subcommand_classes(subcmd_cls, subcmd_parser)
+		return subcmd_added
 		
 
 	# Adds a subcommand to a parent subcommand.
@@ -206,6 +222,7 @@ class _CommandCollection:
 				kwargs['nargs'] = nargs
 
 			parser.add_argument(*names, **kwargs)
+			self.add_to_optiontree(self, names, default, choices)
 		# end: for loop
 			
 		longhelp = help.get('long', '')		# help text following the param help strings in the doc string
@@ -215,6 +232,25 @@ class _CommandCollection:
 			parser.set_extrahelp(longhelp + extrahelp)
 
 		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args))	# set class and function to be called for execution
+
+
+	def add_to_optiontree(self, names, default, choices):
+		if self._optiontree is None:
+			return
+
+		name = names[0]
+		alias = names[1] if len(names) > 1 else None
+		node = Node(name, alias=alias)
+
+		if default is not None:
+			node.add_child(default)
+
+		if choices is not None:
+			for choice in choices:
+				node.add_child(choice)
+
+		self._optiontree.add_node(node)
+		self._optiontree.pop()
 
 
 	def shorten_arg_name(self, arg_name, used):
