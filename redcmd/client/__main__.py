@@ -1,5 +1,5 @@
 
-from .. import CommandLine, CommandLineError, Subcommand, subcmd,
+from .. import CommandLine, CommandLineError, Subcommand, subcmd
 from ..version import __version__
 
 from .autocomplete_subcommand import *

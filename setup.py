@@ -5,12 +5,12 @@ import platform
 import sys
 from setuptools import setup, find_packages
 
-from redcmd.version import __version__
+#from redcmd.version import __version__
 
 
 setup(	
 	name			= 'redcmd',
-	version			= __version__,
+	version			= '1.0.2',
 	description		= 'A library to manage command line interface for an application.',
 	author			= 'Amol Umrale',
 	author_email 		= 'babaiscool@gmail.com',
@@ -18,7 +18,7 @@ setup(
 	packages		= find_packages(),
 	include_package_data	= True,
 	scripts			= ['ez_setup.py'],
-	install_requires	= ['mutils>=1.0.5'],
+	install_requires	= ['redlib>=1.0.5'],
 	classifiers		= [
 					'Development Status :: 4 - Beta',
 					'Environment :: Console',

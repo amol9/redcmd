@@ -1,7 +1,7 @@
 import inspect
 from argparse import ArgumentParser, _SubParsersAction
 
-from mutils.misc import Singleton, docstring
+from redlib.misc import Singleton, docstring
 
 from .command_help_formatter import CommandHelpFormatter
 from .commandparser import CommandParser
@@ -56,7 +56,8 @@ class _CommandCollection:
 
 
 	def make_option_tree(self, command_name=None):
-		command_name = self._cmdparser.prog if command_name is None
+		command_name = self._cmdparser.prog if command_name is None else command_name
+
 		if command_name is None:
 			raise CommandCollectionError('cannot create option tree without a command name')
 
@@ -93,11 +94,15 @@ class _CommandCollection:
 								parent=parser,
 								group_name=subcmd_cls.__name__.lower())
 					subcmd_added = True
-					self._optiontree.add_node(Node(func.__name__))
-			
-					if self.add_subcommand_classes(subcmd_cls, subcmd_parser):
+
+					if self._optiontree is not None:
+						self._optiontree.add_node(Node(func.__name__))
+				
+						if self.add_subcommand_classes(subcmd_cls, subcmd_parser):
+							self._optiontree.pop()
 						self._optiontree.pop()
-					self._optiontree.pop()
+					else:
+						self.add_subcommand_classes(subcmd_cls, subcmd_parser)
 
 		return subcmd_added
 		
@@ -222,14 +227,13 @@ class _CommandCollection:
 				kwargs['nargs'] = nargs
 
 			parser.add_argument(*names, **kwargs)
-			self.add_to_optiontree(self, names, default, choices)
+			self.add_to_optiontree(names, default, choices)
 		# end: for loop
 			
-		longhelp = help.get('long', '')		# help text following the param help strings in the doc string
-		extrahelp = help.get('extra', '')	# help text added to function dictionary in attribute: __extrahelp__
+		longhelp = help.get('long', None)	
 
-		if len(longhelp + extrahelp) > 0:
-			parser.set_extrahelp(longhelp + extrahelp)
+		if longhelp is not None and len(longhelp) > 0:
+			parser.set_extrahelp(longhelp)
 
 		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args))	# set class and function to be called for execution
 

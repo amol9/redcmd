@@ -2,8 +2,8 @@ from argparse import HelpFormatter, _SubParsersAction, SUPPRESS
 import os
 import textwrap
 
-from mutils.misc import docstring
-from mutils.system import terminalsize
+from redlib.misc import docstring
+from redlib.system import terminalsize
 
 
 class CommandHelpFormatter(HelpFormatter):

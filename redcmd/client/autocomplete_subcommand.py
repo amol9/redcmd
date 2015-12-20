@@ -1,5 +1,5 @@
 
-from .. import Subcommand, subcmd
+from .. import Subcommand, subcmd, CommandError
 from ..compgen import CompGen, CompGenError
 
 
