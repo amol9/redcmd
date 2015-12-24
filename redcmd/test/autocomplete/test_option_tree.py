@@ -1,6 +1,6 @@
 from unittest import TestCase, main as ut_main
 
-from redcmd.autocomplte.option_tree import OptionTree, OptionTreeError
+from redcmd.autocomplete import OptionTree, OptionTreeError, Node
 from redcmd import CommandLine
 
 
@@ -20,44 +20,83 @@ class TestOptionTree(TestCase):
 		ot.pop()
 		ot.add_node(Node('level1-3'))
 		ot.pop()
+		ot.pop()
 
-		self.assertRaises(OptionTreeError, ot.pop, ())
+		self.assertRaises(OptionTreeError, ot.pop)
 	
 		root = ot._root
 		self.assertEquals(root._name, 'root')
 
-		l1 = root._children
-		self.assertEquals(l1[0]._name, 'level1-1')
-		self.assertEquals(l1[0]._name, 'level1-2')
-		self.assertEquals(l1[0]._name, 'level1-3')
+		l1 = root.children
+		self.assertIsNotNone(l1)
+		self.assertEquals(l1[0].name, 'level1-1')
+		self.assertEquals(l1[1].name, 'level1-2')
+		self.assertEquals(l1[2].name, 'level1-3')
 
-		l2 = l1[0]._children
-		self.assertEquals(l2[0]._name, 'level2-1')
-		self.assertEquals(l2[1]._name, 'level2-2')
+		l2 = l1[0].children
+		self.assertIsNotNone(l2)
+		self.assertEquals(l2[0].name, 'level2-1')
+		self.assertEquals(l2[1].name, 'level2-2')
 
 
 	#add defaults, choices, opt args
 	def test_subcmd_option_tree_creation(self):
-		from . import subcmd
+		from redcmd.test.autocomplete import subcmd
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
-		cl.make_option_tree()
+		cl.register_autocomplete()
 
 		ot = cl._command_collection._optiontree
 		root = ot._root
 
-		self.assertEquals(root._name, 'subcmd')
+		self.assertEquals(root.name, 'subcmd')
+		self.assertIsNotNone(root.children)
 		
-		cmp = lambda x, y : cmp(x._name, y._name) 
-		sub = sorted(root._children, cmp=cmp)
+		cmp_nodes = lambda x, y : cmp(x.name, y.name) 
+		sub = sorted(root.children, cmp=cmp_nodes)
 
-		self.assertEquals([i._name for i in sub], ['display', 'math'])
+		self.assertEquals([i.name for i in sub], ['db', 'display', 'math', 'search', 'search_config'])
 
-		subsubmath = sorted(l1[1]._children, cmp=cmp)
-		self.assertEquals([i._name for i in subsubmath], ['add', 'div', 'mul', 'sub'])
+		subsubmath = sorted(sub[2].children, cmp=cmp_nodes)
+		self.assertEquals([i.name for i in subsubmath], ['add', 'div', 'mul', 'sub'])
 
-		add = subsubmath[0]
-		#add arg tests
+		add_args = sorted(subsubmath[0].children, cmp=cmp_nodes)
+		self.assertEquals(len(add_args), 2)
+		self.assertEquals([i.name for i in add_args], ['a', 'b'])
+
+		subsubdisplay = sorted(sub[1].children, cmp=cmp_nodes)
+		self.assertEquals([i.name for i in subsubdisplay], ['platform', 'username'])
+
+		search = sub[3]
+		search_args = sorted(search.children, cmp=cmp_nodes)
+		self.assertEquals(search_args[0].name, '-e')
+		self.assertEquals(search_args[0].alias, '--engine')
+
+		engine_choices = [i.name for i in sorted(search_args[0].children, cmp=cmp_nodes)]
+		self.assertEquals(engine_choices, sorted(subcmd.search_engines))
+
+		self.assertEquals(search_args[1].name, 'query')
+		
+		search_config = sub[4]
+
+		search_config_args = sorted(search_config.children, cmp=cmp_nodes)
+		self.assertEquals([(i.name, i.alias) for i in search_config_args], [('-e', '--engine'), ('-m', '--max_results')])
+		self.assertEquals([i.name for i in search_config_args[1].children], ['10'])
+		self.assertIsNone(search_config_args[0].children)
+
+		db = sub[0]
+
+		db_subs = sorted(db.children, cmp=cmp_nodes)
+		self.assertEquals([i.name for i in db_subs], ['clear'])
+
+		db_subsubs = db_subs[0].children
+		self.assertEquals([i.name for i in sorted(db_subsubs, cmp=cmp_nodes)], ['all', 'instance'])
+
+		all = db_subsubs[0]
+		self.assertIsNone(all.children)
+
+		clear = db_subsubs[1]
+		self.assertEquals([i.name for i in sorted(clear.children, cmp=cmp_nodes)], ['id'])
 
 
 if __name__ == '__main__':

@@ -14,13 +14,13 @@ class CommandLine(object):
 
 		self._default_subcommand = default_subcommand
 
+	
+	def execute(self):
 		try:
 			self._command_collection.add_commands()
 		except CommandCollectionError as e:
 			raise CommandLineError('error creating command line structure')
 
-	
-	def execute(self):
 		if self._default_subcommand is not None and len(sys.argv) == 1 :
 			sys.argv.append(self._default_subcommand)
 	
@@ -35,4 +35,8 @@ class CommandLine(object):
 
 	def set_default_subcommand(self, name):
 		self._default_subcommand = name
+
+
+	def register_autocomplete(self, command_name=None):
+		self._command_collection.make_option_tree(command_name)
 

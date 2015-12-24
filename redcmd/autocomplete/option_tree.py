@@ -1,5 +1,11 @@
 from pickle import dump as pickledump, load as pickleload, PicklingError, UnpicklingError
 
+from .node import Node
+
+
+class OptionTreeError(Exception):
+	pass
+
 
 class OptionTree:
 	version = '1.0'
@@ -14,6 +20,8 @@ class OptionTree:
 			try:
 				pickledump([version, self._root], f)
 			except PicklingError as e:
+				print(e)
+				raise OptionTreeError('unable to save option tree')
 
 
 	def load(self, filepath):
@@ -30,12 +38,12 @@ class OptionTree:
 
 
 	def add_node(self, node):
-		assert type(node) == Node
+		assert node.__class__ == Node
 
 		if self._root is None:
 			self._root = node
 		else:
-			is self._stack is None:
+			if self._stack is None or len(self._stack) == 0:
 				raise OptionTreeError('option tree creation error: stack empty')
 				
 			self._stack[-1].add_child(node)
@@ -48,6 +56,9 @@ class OptionTree:
 
 	
 	def pop(self):
+		if len(self._stack) == 0:
+			raise OptionTreeError('node stack empty, cannot pop')
+
 		node = self._stack[-1]
 		del self._stack[-1]
 		return node
@@ -55,4 +66,9 @@ class OptionTree:
 	
 	def gen(self, cmd, word):
 		pass
+
+
+	def print_stack(self):
+		print 'stack: ',
+		print(', '.join([e.name for e in reversed(self._stack)]))
 

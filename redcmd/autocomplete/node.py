@@ -2,15 +2,32 @@
 class Node:
 
 	def __init__(self, name, alias=None):
-		self.name 	= name
-		self.alias	= alias
-		self.children 	= None
+		self._name 	= name
+		self._alias	= alias
+		self._children 	= None
 
 
 	def add_child(self, node):
-		assert type(node) == Node
+		assert node.__class__ == Node
 
-		if self.children is None:
-			self.children = []
-		self.children.append(node)
+		if self._children is None:
+			self._children = []
+		self._children.append(node)
+
+
+	def get_name(self):
+		return self._name
+
+
+	def get_alias(self):
+		return self._alias
+
+
+	def get_children(self):
+		return self._children
+
+
+	name		= property(get_name)
+	alias		= property(get_alias)
+	children	= property(get_children)
 

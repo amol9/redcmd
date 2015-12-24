@@ -11,6 +11,7 @@ from .maincommand import Maincommand
 from .subcommand import Subcommand
 from .exc import CommandCollectionError
 from . import const
+from .autocomplete import OptionTree, OptionTreeError, Node
 
 
 # Notes
@@ -62,7 +63,8 @@ class _CommandCollection:
 			raise CommandCollectionError('cannot create option tree without a command name')
 
 		self._optiontree = OptionTree()
-		self.add_node(Node(command_name)) 
+		self._optiontree.add_node(Node(command_name))
+		self.add_commands()
 
 	
 	def add_commands(self):		# to be called from class CommandLine to add subclass members of Maincommand and Subcommand
@@ -88,6 +90,9 @@ class _CommandCollection:
 					if not func.__name__ in subcmd_cls.__dict__.keys():
 						continue
 
+					if self._optiontree is not None:
+						self._optiontree.add_node(Node(func.__name__))
+
 					subcmd_parser = self.add_subcommand(
 								func,
 								cmd_cls=subcmd_cls,
@@ -95,14 +100,10 @@ class _CommandCollection:
 								group_name=subcmd_cls.__name__.lower())
 					subcmd_added = True
 
+					self.add_subcommand_classes(subcmd_cls, subcmd_parser)
+
 					if self._optiontree is not None:
-						self._optiontree.add_node(Node(func.__name__))
-				
-						if self.add_subcommand_classes(subcmd_cls, subcmd_parser):
-							self._optiontree.pop()
 						self._optiontree.pop()
-					else:
-						self.add_subcommand_classes(subcmd_cls, subcmd_parser)
 
 		return subcmd_added
 		
@@ -246,12 +247,11 @@ class _CommandCollection:
 		alias = names[1] if len(names) > 1 else None
 		node = Node(name, alias=alias)
 
-		if default is not None:
-			node.add_child(default)
-
 		if choices is not None:
 			for choice in choices:
-				node.add_child(choice)
+				node.add_child(Node(str(choice)))
+		elif default is not None:
+			node.add_child(Node(str(default)))
 
 		self._optiontree.add_node(node)
 		self._optiontree.pop()

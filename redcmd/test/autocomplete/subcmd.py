@@ -1,11 +1,12 @@
 
-from redcmd import Subcommand, subcmd
+from redcmd import Subcommand, subcmd, Arg
 
 
 class MathSubcommand(Subcommand):
 	@subcmd
 	def math(self):
 		pass
+
 
 class MathSubSubcommands(MathSubcommand):
 	@subcmd
@@ -21,9 +22,55 @@ class MathSubSubcommands(MathSubcommand):
 	def div(self, a, b):
 		pass
 
+
 class DisplaySubcommand(Subcommand):
 	@subcmd
 	def display(self):
 		pass
 
+
+class DisplaySubSubcommands(DisplaySubcommand):
+	@subcmd
+	def username(self):
+		pass
+
+	@subcmd
+	def platform(self):
+		pass
+
+
+search_engines = ['google', 'bing', 'yahoo', 'duckduckgo']
+
+class SearchSubcommand(Subcommand):
+
+	@subcmd
+	def search(self, query, engine=Arg(opt=True, choices=search_engines, default='google')):
+		pass
+
+
+	@subcmd
+	def search_config(self, max_results=10, engine=None):
+		pass
+
+
+class DbSubcommand(Subcommand):
+	@subcmd
+	def db(self):
+		pass
+
+
+class DbSubSubcommand(DbSubcommand):
+	@subcmd
+	def clear(self):
+		pass
+
+
+class ClearSubcommands(DbSubSubcommand):
+	@subcmd
+	def all(self):
+		pass
+
+	@subcmd
+	def instance(self, id):
+		pass
 
