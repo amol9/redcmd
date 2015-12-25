@@ -1,10 +1,15 @@
 from pickle import dump as pickledump, load as pickleload, PicklingError, UnpicklingError
+import re
 
 from .node import Node
 from .filter import apply_filters
 
 
 class OptionTreeError(Exception):
+	pass
+
+
+class GenError(Exception):
 	pass
 
 
@@ -67,34 +72,51 @@ class OptionTree:
 	
 	def gen(self, cmd, word):
 		words = cmd.split()
+		if words[-1] != word:
+			words.append(word)
+
+		print 'words: ', ', '.join(words)
 
 		if words[0] != self._root.name:
-			raise OptionTreeError('command name: %s not valid for auto completion'%words[0])
+			raise GenError('command name: %s not valid for auto completion'%words[0])
 
 		def has_subcmds(node):
-			possible_arg = node.children[0]
-			if possible_arg.name.startswith('-') or possible_arg.filters is not None:
+			if node.children is None:
 				return False
-			return True
 
-		node = root
+			if node.children[0].subcmd:
+				return True
+			return False
+
+		def find_by_name(name, nodelist):
+			for node in nodelist:
+				if node.name == name:
+					return node
+			return None
+
+		node = self._root
 		args = None
+		idx = 0
 		for i in range(1, len(words) - 1):
 			if node.children is None:
 				return []
 
 			if not has_subcmds(node):
+				idx = i
 				break		# innermost subcommand node found
 
-			if words[i] in [n.name for n in node.children]:
-				node = node.children.find(words[i])
+			node = find_by_name(words[i], node.children)
 
+			if node is None:
+				raise GenError('bad subcommand name: %s'%words[i])
+			idx += 1
 					
-		if len(words) - i + 1 > 1:		# start matching arguments
+		if len(words) - (idx + 1) > 1:		# start matching arguments
 							# opt / pos-val / opt-val
+			print 'more than 1'
 
 			optionals = [n for n in node.children if n.name.startswith('-')]
-			positionals = [n for n in node.children if not n.name.starswith('-')]
+			positionals = [n for n in node.children if not n.name.startswith('-')]
 
 			valid_hyphenated_val_regex = re.compile("-\.?\d+")
 			valid_hyphenated_val = lambda x : valid_hyphenated_val_regex.match(x) is not None
@@ -108,7 +130,7 @@ class OptionTree:
 			opt_val = False
 			opt_var = None
 			pos_count = 0
-			for w in words[i + 1 : -1]:
+			for w in words[idx + 1 : -1]:
 				if opt_val:
 					opt_val = False
 				else:
@@ -137,11 +159,12 @@ class OptionTree:
 
 
 		else:				# only 1, match incomp subcmd or opt arg name or pos arg filter
+			print 'only 1'
 			if node.children is None:
 				return []
 
 			if has_subcmds(node):
-				return [n.name for n in node.children if n.name.startswith(word)]
+				return sorted([n.name for n in node.children if n.name.startswith(word)])
 
 			positionals = [n for n in node.children if not n.name.startswith('-')]
 
@@ -150,7 +173,7 @@ class OptionTree:
 
 			options = []
 
-			for optional in node.children:
+			for optional in sorted(node.children, cmp=lambda x, y : cmp(x.name, y.name)):
 				if optional.name.startswith(word):
 					options.append(optional.name)
 

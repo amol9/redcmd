@@ -1,6 +1,6 @@
 from unittest import TestCase, main as ut_main
 
-from redcmd.autocomplete import OptionTree, OptionTreeError, Node
+from redcmd.autocomplete import OptionTree, OptionTreeError, Node, apply_filters, GenError
 from redcmd import CommandLine
 
 
@@ -50,6 +50,7 @@ class TestOptionTree(TestCase):
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		cl.register_autocomplete()
 
+		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine']
 		ot = cl._command_collection._optiontree
 		root = ot._root
 
@@ -59,7 +60,7 @@ class TestOptionTree(TestCase):
 		cmp_nodes = lambda x, y : cmp(x.name, y.name) 
 		sub = sorted(root.children, cmp=cmp_nodes)
 
-		self.assertEquals([i.name for i in sub], ['db', 'display', 'math', 'search', 'search_config'])
+		self.assertEquals([i.name for i in sub], subcmd_names)
 
 		subsubmath = sorted(sub[2].children, cmp=cmp_nodes)
 		self.assertEquals([i.name for i in subsubmath], ['add', 'div', 'mul', 'sub'])
@@ -76,7 +77,7 @@ class TestOptionTree(TestCase):
 		self.assertEquals(search_args[0].name, '-e')
 		self.assertEquals(search_args[0].alias, '--engine')
 
-		engine_choices = [i.name for i in sorted(search_args[0].children, cmp=cmp_nodes)]
+		engine_choices = sorted(apply_filters('', search_args[0].filters))
 		self.assertEquals(engine_choices, sorted(subcmd.search_engines))
 
 		self.assertEquals(search_args[1].name, 'query')
@@ -85,7 +86,7 @@ class TestOptionTree(TestCase):
 
 		search_config_args = sorted(search_config.children, cmp=cmp_nodes)
 		self.assertEquals([(i.name, i.alias) for i in search_config_args], [('-e', '--engine'), ('-m', '--max_results')])
-		self.assertEquals([i.name for i in search_config_args[1].children], ['10'])
+		self.assertEquals(apply_filters('', search_config_args[1].filters), ['10'])
 		self.assertIsNone(search_config_args[0].children)
 
 		db = sub[0]
@@ -109,14 +110,31 @@ class TestOptionTree(TestCase):
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		cl.register_autocomplete()
 
+		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine']
 		ot = cl._command_collection._optiontree
 		subcmds = sort_by_name(ot._root.children)
 		
-		self.assertEquals(ot.gen('subcmd', ''), [i.name for i in subcmds])
+		self.assertEquals(ot.gen('subcmd', ''), subcmd_names)
+		self.assertRaises(GenError, ot.gen, 'not_reg', '')
+		self.assertEquals(ot.gen('subcmd', 'd'), ['db', 'display'])
+		self.assertEquals(ot.gen('subcmd', 'x'), [])
+		self.assertEquals(ot.gen('subcmd', 'ma'), ['math'])
 
+		self.assertRaises(GenError, ot.gen, 'subcmd engine', '')
+		self.assertEquals(ot.gen('subcmd set_engine', 'g'), ['google'])
+		self.assertEquals(ot.gen('subcmd set_engine', 'b'), ['bing'])
+		self.assertEquals(ot.gen('subcmd set_engine', 'x'), [])
 
+		self.assertEquals(ot.gen('subcmd search -', '-'), [])
+		self.assertEquals(ot.gen('subcmd search', ''), [])
+		self.assertEquals(ot.gen('subcmd search new', 'new'), [])
 
-
+		self.assertEquals(ot.gen('subcmd search_config', 'search_config'), ['search_config'])
+		self.assertEquals(ot.gen('subcmd search_config -', '-'), ['-e', '--engine', '-m', '--max_results'])
+		self.assertEquals(ot.gen('subcmd search_config -e', '-e'), ['-e'])
+		self.assertEquals(ot.gen('subcmd search_config --', '--'), ['--engine', '--max_results'])
+		self.assertEquals(ot.gen('subcmd search_config --m', '--m'), ['--max_results'])
+		self.assertEquals(ot.gen('subcmd search_config --x', '--x'), [])
 
 
 if __name__ == '__main__':

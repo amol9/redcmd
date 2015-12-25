@@ -53,6 +53,11 @@ class SearchSubcommand(Subcommand):
 		pass
 
 
+	@subcmd
+	def set_engine(self, engine=Arg(choices=search_engines)):
+		pass
+
+
 class DbSubcommand(Subcommand):
 	@subcmd
 	def db(self):

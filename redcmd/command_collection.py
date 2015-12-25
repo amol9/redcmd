@@ -11,7 +11,7 @@ from .maincommand import Maincommand
 from .subcommand import Subcommand
 from .exc import CommandCollectionError
 from . import const
-from .autocomplete import OptionTree, OptionTreeError, Node
+from .autocomplete import OptionTree, OptionTreeError, Node, ListFilter
 
 
 # Notes
@@ -91,7 +91,7 @@ class _CommandCollection:
 						continue
 
 					if self._optiontree is not None:
-						self._optiontree.add_node(Node(func.__name__))
+						self._optiontree.add_node(Node(func.__name__, subcmd=True))
 
 					subcmd_parser = self.add_subcommand(
 								func,
@@ -248,12 +248,9 @@ class _CommandCollection:
 
 		filters = []
 		if choices is not None:
-			for choice in choices:
-				#node.add_child(Node(str(choice)))
-				filters.append(ListFilter(choices))
+			filters.append(ListFilter([str(c) for c in choices]))
 		elif default is not None:
-			#node.add_child(Node(str(default)))
-			filters.append(ListFilter(default))
+			filters.append(ListFilter([str(default)]))
 
 		self._optiontree.add_node(Node(name, alias=alias, filters=filters))
 		self._optiontree.pop()

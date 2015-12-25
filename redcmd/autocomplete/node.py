@@ -1,11 +1,12 @@
 
 class Node:
 
-	def __init__(self, name, alias=None, filters=None):
+	def __init__(self, name, alias=None, filters=None, subcmd=False):
 		self._name 	= name
 		self._alias	= alias
 		self._children 	= None
-		self._filters	= None
+		self._filters	= filters
+		self._subcmd	= subcmd
 
 
 	def add_child(self, node):
@@ -29,7 +30,17 @@ class Node:
 		return self._children
 
 
+	def get_filters(self):
+		return self._filters
+
+
+	def get_subcmd(self):
+		return self._subcmd
+
+
 	name		= property(get_name)
 	alias		= property(get_alias)
 	children	= property(get_children)
+	filters		= property(get_filters)
+	subcmd		= property(get_subcmd)
 
