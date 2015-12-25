@@ -4,6 +4,10 @@ from redcmd.autocomplete import OptionTree, OptionTreeError, Node
 from redcmd import CommandLine
 
 
+def sort_by_name(nodelist):
+	return sorted(nodelist, cmp=lambda x, y : cmp(x.name, y.name))
+
+
 class TestOptionTree(TestCase):
 
 	def test_tree_creation(self):
@@ -97,6 +101,22 @@ class TestOptionTree(TestCase):
 
 		clear = db_subsubs[1]
 		self.assertEquals([i.name for i in sorted(clear.children, cmp=cmp_nodes)], ['id'])
+
+
+	def test_gen(self):
+		from redcmd.test.autocomplete import subcmd
+
+		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
+		cl.register_autocomplete()
+
+		ot = cl._command_collection._optiontree
+		subcmds = sort_by_name(ot._root.children)
+		
+		self.assertEquals(ot.gen('subcmd', ''), [i.name for i in subcmds])
+
+
+
+
 
 
 if __name__ == '__main__':

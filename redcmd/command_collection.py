@@ -245,15 +245,17 @@ class _CommandCollection:
 
 		name = names[0]
 		alias = names[1] if len(names) > 1 else None
-		node = Node(name, alias=alias)
 
+		filters = []
 		if choices is not None:
 			for choice in choices:
-				node.add_child(Node(str(choice)))
+				#node.add_child(Node(str(choice)))
+				filters.append(ListFilter(choices))
 		elif default is not None:
-			node.add_child(Node(str(default)))
+			#node.add_child(Node(str(default)))
+			filters.append(ListFilter(default))
 
-		self._optiontree.add_node(node)
+		self._optiontree.add_node(Node(name, alias=alias, filters=filters))
 		self._optiontree.pop()
 
 
