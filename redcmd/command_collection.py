@@ -72,8 +72,8 @@ class _CommandCollection:
 		maincmd_cls = Maincommand if maincmd_cls is None else maincmd_cls	# subclass members of Maincommand and Subcommand
 		subcmd_cls = Subcommand if subcmd_cls is None else subcmd_cls
 
-		self.add_maincommand_class(Maincommand)
-		self.add_subcommand_classes(Subcommand, self._cmdparser)
+		self.add_maincommand_class(maincmd_cls)
+		self.add_subcommand_classes(subcmd_cls, self._cmdparser)
 
 
 	def add_internal_commands(self):

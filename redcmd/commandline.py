@@ -3,6 +3,7 @@ import sys
 from .exc import CommandError, CommandCollectionError
 from .command_collection import CommandCollection
 from . import const
+from .client import *
 
 
 class CommandLine(object):

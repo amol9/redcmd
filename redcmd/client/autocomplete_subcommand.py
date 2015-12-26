@@ -1,6 +1,6 @@
 
 from .. import subcmd, CommandError
-from ..compgen import CompGen, CompGenError
+from ..autocomplete import Generator, GeneratorError, Installer
 from .redcmd_internal_subcommand import RedcmdInternalSubcommand
 
 
@@ -48,5 +48,5 @@ class AutoCompleteSubSubcommands(AutoCompleteSubcommand):
 	def list(self):
 		'List the commands registered for autocomplete.'
 
-		pass
+		print('no list yet')
 

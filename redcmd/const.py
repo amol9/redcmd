@@ -13,4 +13,5 @@ data_dir_name		= '.redcmd'
 data_dir_path		= joinpath(expanduser('~'), data_dir_name)
 
 internal_subcmd		= 'redcmdinternal'
+prog_name		= 'redcmd'
 

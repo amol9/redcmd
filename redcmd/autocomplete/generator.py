@@ -1,5 +1,5 @@
 
-class GenError(Exception):
+class GeneratorError(Exception):
 	pass
 
 
