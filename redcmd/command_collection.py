@@ -8,7 +8,7 @@ from .commandparser import CommandParser
 from .arg import Arg
 from .cmdfunc import CmdFunc
 from .maincommand import Maincommand
-from .subcommand import Subcommand
+from .subcommand import Subcommand, InternalSubcommand
 from .exc import CommandCollectionError
 from . import const
 from .autocomplete import OptionTree, OptionTreeError, Node, ListFilter
@@ -44,8 +44,9 @@ from .autocomplete import OptionTree, OptionTreeError, Node, ListFilter
 class _CommandCollection:
 
 	def __init__(self):
-		self._cmdparser = CommandParser(formatter_class=CommandHelpFormatter)
-		self._optiontree = None
+		self._cmdparser 		= CommandParser(formatter_class=CommandHelpFormatter)
+		self._internal_cmdparser 	= None
+		self._optiontree 		= None
 
 
 	def set_details(self, prog=None, description=None, version=None):
@@ -67,9 +68,17 @@ class _CommandCollection:
 		self.add_commands()
 
 	
-	def add_commands(self):		# to be called from class CommandLine to add subclass members of Maincommand and Subcommand
+	def add_commands(self, maincmd_cls=None, subcmd_cls=None):			# to be called from class CommandLine to add
+		maincmd_cls = Maincommand if maincmd_cls is None else maincmd_cls	# subclass members of Maincommand and Subcommand
+		subcmd_cls = Subcommand if subcmd_cls is None else subcmd_cls
+
 		self.add_maincommand_class(Maincommand)
 		self.add_subcommand_classes(Subcommand, self._cmdparser)
+
+
+	def add_internal_commands(self):
+		self._internal_cmdparser = CommandParser(formatter_class=CommandHelpFormatter)
+		self.add_subcommand_classes(InternalSubcommand, self._internal_cmdparser)
 
 
 	def add_subcommand_classes(self, cls, parser):
@@ -295,8 +304,14 @@ class _CommandCollection:
 		self.add_args_to_parser(func, cmd_cls, self._cmdparser)
 
 
-	def execute(self):			# to be called for execution of command line
-		args = self._cmdparser.parse_args()
+	def execute(self, args, namespace, internal=False):	# to be called for execution of command line
+		args = None
+
+		if not internal:
+			args = self._cmdparser.parse_args(args, namespace)
+		else:
+			args = self._internal_cmdparser.parse_args(args, namespace)
+
 		try:
 			cmd_func = args.cmd_func
 			cmd_func.execute(args)

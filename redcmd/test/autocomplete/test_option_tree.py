@@ -2,6 +2,7 @@ from unittest import TestCase, main as ut_main
 
 from redcmd.autocomplete import OptionTree, OptionTreeError, Node, apply_filters, GenError
 from redcmd import CommandLine
+from redcmd.command_collection import CommandCollection
 
 
 def sort_by_name(nodelist):
@@ -9,6 +10,10 @@ def sort_by_name(nodelist):
 
 
 class TestOptionTree(TestCase):
+
+	def tearDown(self):
+		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
+
 
 	def test_tree_creation(self):
 		ot = OptionTree()

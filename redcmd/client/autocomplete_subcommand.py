@@ -1,9 +1,10 @@
 
-from .. import Subcommand, subcmd, CommandError
+from .. import subcmd, CommandError
 from ..compgen import CompGen, CompGenError
+from .redcmd_internal_subcommand import RedcmdInternalSubcommand
 
 
-class AutoCompleteSubcommand(Subcommand):
+class AutoCompleteSubcommand(RedcmdInternalSubcommand):
 
 	@subcmd
 	def autocomplete(self):
@@ -14,7 +15,7 @@ class AutoCompleteSubcommand(Subcommand):
 class AutoCompleteSubSubcommands(AutoCompleteSubcommand):
 
 	@subcmd
-	def install(self, command_name):
+	def setup(self, command_name):
 		'''Install autocomplete for a command.
 		command_name: command name'''
 
@@ -22,7 +23,7 @@ class AutoCompleteSubSubcommands(AutoCompleteSubcommand):
 
 
 	@subcmd
-	def uninstall(self, command_name):
+	def remove(self, command_name):
 		'''Uninstall autocomplete for a command.
 		command_name: command name'''
 
