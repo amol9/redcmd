@@ -79,3 +79,9 @@ class ClearSubcommands(DbSubSubcommand):
 	def instance(self, id):
 		pass
 
+
+class TotalSubcommand(Subcommand):
+	@subcmd
+	def total(self, a, b, c, floating_point=False):
+		pass
+

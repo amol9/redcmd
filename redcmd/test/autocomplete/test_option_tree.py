@@ -43,14 +43,13 @@ class TestOptionTree(TestCase):
 		self.assertEquals(l2[1].name, 'level2-2')
 
 
-	#add defaults, choices, opt args
 	def test_subcmd_option_tree_creation(self):
 		from redcmd.test.autocomplete import subcmd
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		cl.register_autocomplete()
 
-		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine']
+		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
 		ot = cl._command_collection._optiontree
 		root = ot._root
 
@@ -110,7 +109,7 @@ class TestOptionTree(TestCase):
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		cl.register_autocomplete()
 
-		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine']
+		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
 		ot = cl._command_collection._optiontree
 		subcmds = sort_by_name(ot._root.children)
 		
@@ -130,11 +129,29 @@ class TestOptionTree(TestCase):
 		self.assertEquals(ot.gen('subcmd search new', 'new'), [])
 
 		self.assertEquals(ot.gen('subcmd search_config', 'search_config'), ['search_config'])
-		self.assertEquals(ot.gen('subcmd search_config -', '-'), ['-e', '--engine', '-m', '--max_results'])
+		self.assertEquals(ot.gen('subcmd search_config -', '-'), ['-e, --engine', '-m, --max_results'])
 		self.assertEquals(ot.gen('subcmd search_config -e', '-e'), ['-e'])
 		self.assertEquals(ot.gen('subcmd search_config --', '--'), ['--engine', '--max_results'])
 		self.assertEquals(ot.gen('subcmd search_config --m', '--m'), ['--max_results'])
 		self.assertEquals(ot.gen('subcmd search_config --x', '--x'), [])
+
+
+		self.assertEquals(ot.gen('subcmd search -e google', 'google'), ['google'])	
+		self.assertEquals(ot.gen('subcmd search query -e', ''), sorted(subcmd.search_engines))	
+		self.assertEquals(ot.gen('subcmd search query -e g', 'g'), ['google'])	
+		self.assertEquals(ot.gen('subcmd search query -', '-'), ['--engine'])	
+		self.assertEquals(ot.gen('subcmd search -e google query -', '-'), [])	
+		self.assertEquals(ot.gen('subcmd search -e google query -e', 'b'), ['bing'])	
+
+		self.assertEquals(ot.gen('subcmd search_config -e bing -m 20 -', '-'), [])
+		self.assertEquals(ot.gen('subcmd search_config -e bing -m 20 --e', '--e'), [])
+
+		self.assertEquals(ot.gen('subcmd total', ''), [])
+		self.assertEquals(ot.gen('subcmd total 10 20', ''), [])
+		self.assertEquals(ot.gen('subcmd total 10 20 30', ''), ['--floating_point'])
+		self.assertEquals(ot.gen('subcmd total -f true 10 20 30', ''), [])
+		self.assertEquals(ot.gen('subcmd total 10 -f true 20 30', ''), [])
+		self.assertEquals(ot.gen('subcmd total 10 20 30 -f', '-f'), ['-f'])
 
 
 if __name__ == '__main__':

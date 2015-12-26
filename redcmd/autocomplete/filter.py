@@ -44,6 +44,13 @@ class CommandFilter(IFilter):
 
 
 @implementer(IFilter)
+class RangeFilter:
+
+	def match(self, name):
+		pass
+
+
+@implementer(IFilter)
 class ListFilter:
 
 	def __init__(self, vlist=None):

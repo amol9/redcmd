@@ -70,17 +70,15 @@ class OptionTree:
 		return node
 
 	
-	def gen(self, cmd, word):
-		words = cmd.split()
-		if words[-1] != word:
-			words.append(word)
-
-		print 'words: ', ', '.join(words)
+	def gen(self, cmdline, lastword):
+		words = cmdline.split()
+		if words[-1] != lastword:
+			words.append(lastword)
 
 		if words[0] != self._root.name:
 			raise GenError('command name: %s not valid for auto completion'%words[0])
 
-		def has_subcmds(node):
+		def has_subcmds(node):			# return true if given node has any subcommand
 			if node.children is None:
 				return False
 
@@ -88,22 +86,21 @@ class OptionTree:
 				return True
 			return False
 
-		def find_by_name(name, nodelist):
+		def find_by_name(name, nodelist):	# find a node by name in node list
 			for node in nodelist:
 				if node.name == name:
 					return node
 			return None
 
-		node = self._root
-		args = None
+		node = self._root			# start at root node
 		idx = 0
-		for i in range(1, len(words) - 1):
+		for i in range(1, len(words) - 1):	# to find the innermost subcommand, just the main command if no subcommands are present
 			if node.children is None:
 				return []
 
 			if not has_subcmds(node):
-				idx = i
-				break		# innermost subcommand node found
+				idx = i - 1
+				break			# innermost subcommand node found
 
 			node = find_by_name(words[i], node.children)
 
@@ -111,77 +108,75 @@ class OptionTree:
 				raise GenError('bad subcommand name: %s'%words[i])
 			idx += 1
 					
-		if len(words) - (idx + 1) > 1:		# start matching arguments
-							# opt / pos-val / opt-val
-			print 'more than 1'
+		if has_subcmds(node):
+			if len(words) - (idx + 1) > 1:
+				raise GenError('bad subcommand name: %s'%words[idx + 1])
+			else:
+				return sorted([n.name for n in node.children if n.name.startswith(lastword)])
 
-			optionals = [n for n in node.children if n.name.startswith('-')]
-			positionals = [n for n in node.children if not n.name.startswith('-')]
+		optionals = [n for n in node.children if n.name.startswith('-')]
+		positionals = [n for n in node.children if not n.name.startswith('-')]
 
-			valid_hyphenated_val_regex = re.compile("-\.?\d+")
-			valid_hyphenated_val = lambda x : valid_hyphenated_val_regex.match(x) is not None
+		valid_hyphenated_val_regex = re.compile("-\.?\d+")	# some hyphenated values are valid argument values
+		valid_hyphenated_val = lambda x : valid_hyphenated_val_regex.match(x) is not None
 
-			def get_opt(name):
-				for n in optionals:
-					if n.name == name or n.alias == name:
-						return n
-				return None
-			
-			opt_val = False
-			opt_var = None
-			pos_count = 0
-			for w in words[idx + 1 : -1]:
-				if opt_val:
-					opt_val = False
-				else:
-					opt_var = get_opt(w)
-					if opt_var is not None:
-						opt_val = True
-					else:
-						pos_count += 1
-				if pos_count > len(positionals):
-					return []
-
+		def get_opt(name):	# get optional arg node by name or alias
+			for n in optionals:
+				if n.name == name or n.alias == name:
+					return n
+			return None
+		
+		opt_val = False		# True: last word is optional arg value
+		opt_var = None		# last seen optional arg (node)
+		pos_count = 0		# no. of positional arguments found (except last word)
+		opt_seen = []		# optional args seen (so we don't suggest those again in autocomplete)
+		for w in words[idx + 1 : -1]:
 			if opt_val:
-				return apply_filters(word, opt_var.filters)
-			elif word.startswith('-'):
-				options = []
-				for opt in optionals:
-					if opt.name.startswith(word) or opt.alias.startswith(word):
-						options.append(opt.name + '' if opt.alias is None else ', %s'%opt.alias)
-				return options
-			else:		# positional
-				if pos_count < len(positionals):
-					pos_var = positionals[pos_count]
-					return apply_filters(word, pos_var.filters)
+				opt_val = False
+			else:
+				opt_var = get_opt(w)
+				opt_seen.append(opt_var)
+
+				if opt_var is not None:
+					opt_val = True
 				else:
-					return []
-
-
-		else:				# only 1, match incomp subcmd or opt arg name or pos arg filter
-			print 'only 1'
-			if node.children is None:
+					pos_count += 1
+			if pos_count > len(positionals):
 				return []
 
-			if has_subcmds(node):
-				return sorted([n.name for n in node.children if n.name.startswith(word)])
+		if opt_val:				# last word is an incomplete optional arg value
+			return sorted(apply_filters(lastword, opt_var.filters))
 
-			positionals = [n for n in node.children if not n.name.startswith('-')]
+		elif pos_count < len(positionals):	# last word could be an incomplete positional arg value
+			pos_var = positionals[pos_count]
+			return sorted(apply_filters(lastword, pos_var.filters))
 
-			if len(positionals) > 0:
-				return apply_filters(word, positionals[0].filters)
+		else:					# last word is an incomplete optional arg name
+			opt_pairs = []
+			for opt in sorted([o for o in optionals if o not in opt_seen], cmp=lambda x, y : cmp(x.name, y.name)):
+				name = opt.name if opt.name.startswith(lastword) else None
+				alias = opt.alias if opt.alias.startswith(lastword) else None
+
+				opt_pairs.append((name, alias))
 
 			options = []
-
-			for optional in sorted(node.children, cmp=lambda x, y : cmp(x.name, y.name)):
-				if optional.name.startswith(word):
-					options.append(optional.name)
-
-				if optional.alias.startswith(word):
-					options.append(optional.alias)
+			if len(opt_pairs) == 1:		# if only one optional arg is matching, just return its full name (-- prefixed name)
+					name, alias = opt_pairs[0]
+					if alias is None:
+						return [name]
+					else:
+						return [alias]
+			else:				# return "-o, --option_name" style pairs
+				for name, alias in opt_pairs:
+					if name is not None and alias is not None:
+						options.append(name + ', ' + alias)
+					elif name is not None:
+						options.append(name)
+					elif alias is not None:
+						options.append(alias)
 
 			return options
-
+	
 
 	def print_stack(self):
 		print 'stack: ',
