@@ -2,7 +2,7 @@
 from .. import CommandLine, CommandLineError, Subcommand, subcmd
 from ..version import __version__
 
-from .autocomplete_subcommand import *
+from .autocomp_subcommand import *
 
 
 cmdline = CommandLine(prog='redcmd', description='redcmd client.',

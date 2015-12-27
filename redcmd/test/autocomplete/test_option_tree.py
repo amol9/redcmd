@@ -1,6 +1,6 @@
 from unittest import TestCase, main as ut_main
 
-from redcmd.autocomplete import OptionTree, OptionTreeError, Node, apply_filters, GenError
+from redcmd.autocomp import OptionTree, OptionTreeError, Node, apply_filters, GenError
 from redcmd import CommandLine
 from redcmd.command_collection import CommandCollection
 
@@ -49,7 +49,7 @@ class TestOptionTree(TestCase):
 
 
 	def test_subcmd_option_tree_creation(self):
-		from redcmd.test.autocomplete import subcmd
+		from redcmd.test.autocomp import subcmd
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		cl.register_autocomplete()
@@ -109,7 +109,7 @@ class TestOptionTree(TestCase):
 
 
 	def test_gen(self):
-		from redcmd.test.autocomplete import subcmd
+		from redcmd.test.autocomp import subcmd
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		cl.register_autocomplete()

@@ -4,7 +4,7 @@ from .exc import CommandError, CommandCollectionError
 from .command_collection import CommandCollection
 from . import const
 from .client import *
-from .autocomplete import Installer, InstallError
+from .autocomp import Installer, InstallError
 
 
 class CommandLine(object):

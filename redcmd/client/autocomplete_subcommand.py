@@ -1,18 +1,18 @@
 
 from .. import subcmd, CommandError
-from ..autocomplete import Generator, GeneratorError, Installer
+from ..autocomp import Generator, GeneratorError, Installer
 from .redcmd_internal_subcommand import RedcmdInternalSubcommand
 
 
-class AutoCompleteSubcommand(RedcmdInternalSubcommand):
+class AutocompSubcommand(RedcmdInternalSubcommand):
 
 	@subcmd
-	def autocomplete(self):
+	def autocomp(self):
 		'Do various autocomplete actions.'
 		pass
 
 
-class AutoCompleteSubSubcommands(AutoCompleteSubcommand):
+class AutocompSubSubcommands(AutocompSubcommand):
 
 	@subcmd
 	def setup(self, command_name):

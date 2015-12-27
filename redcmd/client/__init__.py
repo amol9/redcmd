@@ -1,2 +1,2 @@
-from .autocomplete_subcommand import *
+from .autocomp_subcommand import *
 
