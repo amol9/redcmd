@@ -4,6 +4,7 @@ from .exc import CommandError, CommandCollectionError
 from .command_collection import CommandCollection
 from . import const
 from .client import *
+from .autocomplete import Installer, InstallError
 
 
 class CommandLine(object):
@@ -15,6 +16,7 @@ class CommandLine(object):
 
 		self._default_subcommand = default_subcommand
 		self._namespace = namespace
+		self._prog = prog
 
 	
 	def execute(self, args=None, namespace=None):
@@ -65,6 +67,23 @@ class CommandLine(object):
 		self._default_subcommand = name
 
 
-	def register_autocomplete(self, command_name=None):
-		self._command_collection.make_option_tree(command_name)
+	def setup_autocomplete(self, command_name=None):
+		installer = Installer()
+
+		try:
+			installer.setup(command_name)
+		except InstallError as e:
+			print(e)
+
+
+	def remove_autocomplete(self, command_name=None):
+		installer = Installer()
+
+		if command_name is None:
+			command_name = self._prog
+
+		try:
+			installer.remove(command_name)
+		except InstallError as e:
+			print(e)
 

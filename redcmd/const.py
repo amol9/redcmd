@@ -9,8 +9,10 @@ prog			= 'program'
 description		= 'A command line utility.'
 version			= '0.0.0'
 
+user_home		= '~'
 data_dir_name		= '.redcmd'
-data_dir_path		= joinpath(expanduser('~'), data_dir_name)
+data_dir_path		= joinpath(expanduser(user_home), data_dir_name)
+autocomp_dir_path	= joinpath(data_dir_path, 'autocomp')
 
 internal_subcmd		= 'redcmdinternal'
 prog_name		= 'redcmd'

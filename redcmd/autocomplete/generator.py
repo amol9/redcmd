@@ -17,7 +17,7 @@ class Generator:
 	
 	def gen(self):
 		command_name = self._command_line.split()[0]
-		ot_filepath = joinpath(const.data_dir_path, command_name)
+		ot_filepath = joinpath(const.autocomp_dir_path, command_name)
 
 		if not exists(ot_filepath):
 			raise CompGenError('%s is not registered for redcmd autocomplete'%command_name)

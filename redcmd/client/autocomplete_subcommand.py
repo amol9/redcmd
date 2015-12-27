@@ -23,7 +23,7 @@ class AutoCompleteSubSubcommands(AutoCompleteSubcommand):
 
 
 	@subcmd
-	def remove(self, command_name):
+	def remove(self, command_name, confirm=True):
 		'''Uninstall autocomplete for a command.
 		command_name: command name'''
 
