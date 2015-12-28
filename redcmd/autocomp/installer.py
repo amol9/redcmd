@@ -3,6 +3,7 @@ from os import makedirs, remove
 
 from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
+from .shell_script_installer import get_shell_script_installer
 
 
 class InstallError(Exception):
@@ -12,7 +13,7 @@ class InstallError(Exception):
 class Installer:
 
 	def __init__(self):
-		pass
+		self._shell_script_installer = get_shell_script_installer()
 
 
 	def setup(self, command_name):
@@ -38,3 +39,26 @@ class Installer:
 		except OSError as e:
 			print(e)
 			raise InstallError('unable to remove autocomplete data for %s'%command_name)
+
+
+	def base_installed(self):
+		return self._shell_script_installer.base_installed()
+
+
+	def setup_base(self):
+		self._shell_script_installer.setup_base()
+
+
+	def remove_base(self):
+		self._shell_script_installer.remove_base()
+
+
+	def setup_cmd(self, cmdname):
+		self._shell_script_installer.setup_cmd(cmdname)
+
+
+	def remove_cmd(self, cmdname):
+		self._shell_script_installer.remove_cmd(cmdname)
+
+
+

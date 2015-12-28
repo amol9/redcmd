@@ -1,8 +1,9 @@
 
 from .. import subcmd, CommandError
 from ..autocomp.generator import Generator, GenError
-from ..autocomp.installer import Installer
+from ..autocomp.installer import Installer, InstallError
 from .redcmd_internal_subcommand import RedcmdInternalSubcommand
+from ..datastore import DataStore
 
 
 class AutocompSubcommand(RedcmdInternalSubcommand):
@@ -20,7 +21,12 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		'''Install autocomplete for a command.
 		command_name: command name'''
 
-		pass
+		installer = Installer()
+		try:
+			installer.setup(command_name)
+		except InstallError as e:
+			print(e)
+			raise CommandError()
 
 
 	@subcmd
@@ -32,15 +38,29 @@ class AutocompSubSubcommands(AutocompSubcommand):
 
 
 	@subcmd
+	def setupbase(self):
+		'Install common base scripts for autocomplete.'
+		pass
+
+
+	@subcmd
+	def removebase(self):
+		'''Uninstall common base scripts for autocomplete.
+		Please note that all the commands setup for autocomplete will also be unregistered.'''
+		pass
+
+
+	@subcmd
 	def gen(self, command_line, word):
 		'''Generate autocomplete options for a command.
 		command_line: command line so far
 		word: word to be auto-completed'''
 
 		try:
-			compgen = CompGen(command_line, word)
-			compgen.gen()
-		except CompGenError as e:
+			gen = Generator(command_line, word)
+			gen.load()
+			gen.gen()
+		except GenError as e:
 			print(e)
 			raise CommandError()
 
@@ -49,5 +69,10 @@ class AutocompSubSubcommands(AutocompSubcommand):
 	def list(self):
 		'List the commands registered for autocomplete.'
 
-		print('no list yet')
-
+		try:
+			dstore = DataStore()
+			for name in dstore.list_optiontree():
+				print(name)
+		except DataStoreError as e:
+			print(e)
+			raise CommandError()
