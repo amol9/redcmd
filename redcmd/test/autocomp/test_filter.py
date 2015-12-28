@@ -1,6 +1,6 @@
 from unittest import TestCase, main as ut_main
 
-from redcmd.autocomp import ListFilter
+from redcmd.autocomp.filter import ListFilter
 
 
 class TestFilter(TestCase):

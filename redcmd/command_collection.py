@@ -11,7 +11,9 @@ from .maincommand import Maincommand
 from .subcommand import Subcommand, InternalSubcommand
 from .exc import CommandCollectionError
 from . import const
-from .autocomp import OptionTree, OptionTreeError, Node, ListFilter
+from .autocomp.option_tree import OptionTree, OptionTreeError
+from .autocomp.node import Node
+from .autocomp.filter import ListFilter
 
 
 # Notes

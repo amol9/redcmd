@@ -3,8 +3,8 @@ import sys
 from .exc import CommandError, CommandCollectionError
 from .command_collection import CommandCollection
 from . import const
-from .client import *
-from .autocomp import Installer, InstallError
+from .client.autocomp_subcommand import *
+from .autocomp.installer import Installer, InstallError
 
 
 class CommandLine(object):
