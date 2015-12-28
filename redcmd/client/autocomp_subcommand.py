@@ -1,6 +1,6 @@
 
 from .. import subcmd, CommandError
-from ..autocomp.generator import Generator, GeneratorError
+from ..autocomp.generator import Generator, GenError
 from ..autocomp.installer import Installer
 from .redcmd_internal_subcommand import RedcmdInternalSubcommand
 
