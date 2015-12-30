@@ -24,6 +24,7 @@ class DataStore:
 
 
 	def load_optiontree(self, cmdname):
+		# check user dir and /var/local
 		pass
 
 

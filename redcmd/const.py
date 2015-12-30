@@ -1,4 +1,5 @@
 from os.path import join as joinpath, expanduser
+from os import getuid
 
 from redlib.system.common import is_linux
 
@@ -18,7 +19,7 @@ data_dir		= None
 autocomp_dir		= None
 script_dir		= None
 
-if is_linux() and getguid() == 0:
+if is_linux() and getuid() == 0:
 	data_dir		= joinpath('/var/local', data_dir_name)
 	autocomp_dir		= joinpath(data_dir, 'autocomp')
 	script_dir		= joinpath(data_dir, 'script')

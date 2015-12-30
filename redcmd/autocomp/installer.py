@@ -3,7 +3,7 @@ from os import makedirs, remove
 
 from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
-from .shell_script_installer import get_shell_script_installer
+from .shell_script_installer_factory import get_shell_script_installer
 
 
 class InstallError(Exception):

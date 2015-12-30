@@ -8,7 +8,7 @@ class IFilter(Interface):
 		
 
 @implementer(IFilter)
-class RegexFilter(IFilter):
+class RegexFilter:
 
 	def __init__(self, regexes):
 		self._regexes = regexes
@@ -19,7 +19,7 @@ class RegexFilter(IFilter):
 
 
 @implementer(IFilter)
-class GlobFilter(IFilter):
+class GlobFilter:
 
 	def __init__(self, patterns):
 		self._patterns = patterns
@@ -32,7 +32,7 @@ class GlobFilter(IFilter):
 
 
 @implementer(IFilter)
-class CommandFilter(IFilter):
+class CommandFilter:
 
 	def __init__(self, command, filter=None):
 		self._command = command
