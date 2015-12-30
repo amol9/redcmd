@@ -1,6 +1,7 @@
 import re
 
 from .filter import apply_filters
+from ..datastore import DataStore
 
 
 class GenError(Exception):
@@ -20,14 +21,9 @@ class Generator:
 
 	
 	def load(self):
-		command_name = self._cmdline.split()[0]
-		ot_filepath = joinpath(const.autocomp_dir_path, command_name)
-
-		if not exists(ot_filepath):
-			raise GenError('%s is not registered for redcmd autocomplete'%command_name)
-
-		self._optiontree = OptionTree()
-		self._optiontree.load(ot_filepath)
+		cmdname = self._cmdline.split()[0]
+		dstore = DataStore()
+		self._optiontree = dstore.load_optiontree(cmdname)
 
 
 	def gen(self):

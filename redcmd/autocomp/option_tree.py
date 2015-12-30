@@ -1,4 +1,3 @@
-from pickle import dump as pickledump, load as pickleload, PicklingError, UnpicklingError
 import re
 
 from .node import Node
@@ -16,27 +15,6 @@ class OptionTree:
 		self._root = None
 		self._stack = []
 
-
-	def save(self, filepath):
-		with open(filepath, 'w') as f:
-			try:
-				pickledump([version, self._root], f)
-			except PicklingError as e:
-				print(e)
-				raise OptionTreeError('unable to save option tree')
-
-
-	def load(self, filepath):
-		with open(filepath, 'r') as f:
-			try:
-				data = pickleload(f)
-			except UnpicklingError as e:
-				log.error(str(e))
-
-			version = data[0]
-			if version > self.version:
-				raise OptionTreeError('cannot load greater version, %s > %s'%(version, self.version))
-			self._root = data[1]
 
 
 	def add_node(self, node):
@@ -68,6 +46,14 @@ class OptionTree:
 	
 	def get_root(self):
 		return self._root
+
+
+	def __getstate__(self):
+		return self._root
+
+
+	def __setstate__(self, root):
+		self._root = root
 
 
 	def print_stack(self):

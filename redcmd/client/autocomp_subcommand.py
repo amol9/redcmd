@@ -3,7 +3,7 @@ from .. import subcmd, CommandError
 from ..autocomp.generator import Generator, GenError
 from ..autocomp.installer import Installer, InstallError
 from .redcmd_internal_subcommand import RedcmdInternalSubcommand
-from ..datastore import DataStore
+from ..datastore import DataStore, DataStoreError
 
 
 class AutocompSubcommand(RedcmdInternalSubcommand):
@@ -57,9 +57,12 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		word: word to be auto-completed'''
 
 		try:
-			gen = Generator(command_line, word)
-			gen.load()
-			gen.gen()
+			g = Generator(command_line, word)
+			g.load()
+			options = g.gen()
+
+			for option in options:
+				print(option)
 		except GenError as e:
 			print(e)
 			raise CommandError()

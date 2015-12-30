@@ -14,6 +14,7 @@ from . import const
 from .autocomp.option_tree import OptionTree, OptionTreeError
 from .autocomp.node import Node
 from .autocomp.filter import ListFilter
+from .datastore import DataStore
 
 
 # Notes
@@ -68,6 +69,9 @@ class _CommandCollection:
 		self._optiontree = OptionTree()
 		self._optiontree.add_node(Node(command_name))
 		self.add_commands()
+
+		dstore = DataStore()
+		dstore.save_optiontree(self._optiontree, command_name)
 
 	
 	def add_commands(self, maincmd_cls=None, subcmd_cls=None):			# to be called from class CommandLine to add

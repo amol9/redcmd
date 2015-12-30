@@ -15,14 +15,9 @@ class Installer:
 
 	def __init__(self):
 		self._shell_script_installer = get_shell_script_installer()
-		dstore = DataStore()
-		dstore.check_dir(autocomp=True)
 
 
 	def setup(self, command_name):
-		if not exists(const.autocomp_dir_path):
-			makedirs(const.autocomp_dir_path)
-
 		command_collection = CommandCollection()
 		command_collection.make_option_tree()
 		

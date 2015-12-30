@@ -7,6 +7,8 @@ from setuptools import setup, find_packages
 
 #from redcmd.version import __version__
 
+entry_points = {}
+entry_points['console_scripts'] = ['redcmd=redcmd.main:main']
 
 setup(	
 	name			= 'redcmd',
@@ -19,6 +21,7 @@ setup(
 	include_package_data	= True,
 	scripts			= ['ez_setup.py'],
 	install_requires	= ['redlib>=1.0.5'],
+	entry_points		= entry_points,
 	classifiers		= [
 					'Development Status :: 4 - Beta',
 					'Environment :: Console',

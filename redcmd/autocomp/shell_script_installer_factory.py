@@ -1,3 +1,4 @@
+import os
 
 from redlib.system.common import is_linux, is_windows
 

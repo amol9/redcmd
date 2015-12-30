@@ -3,7 +3,7 @@ from os.path import exists, join as joinpath, dirname
 import stat
 
 from zope.interface import implementer
-from redlib.system.sys_command import sys_command, popen
+from redlib.system.sys_command import sys_command
 from redlib.misc.textpatch import TextPatch
 
 from .shell_script_installer import IShellScriptInstaller
@@ -48,7 +48,7 @@ class BASHScriptInstaller:
 
 
 	def completion_setup(self, cmdname):
-		return True	# temp
+		return False, 'a'	# temp
 		rc, op = sys_command("bash -c 'complete | grep %s'"%cmdname)
 		func = op.split()[-2] if rc == 0 else None
 
