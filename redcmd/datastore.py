@@ -1,3 +1,5 @@
+from os import mkdir
+from os.path import exists
 
 from . import const
 
@@ -15,10 +17,13 @@ class DataStore:
 		if autocomp and not exists(const.autocomp_dir):
 			self.create_dir(const.autocomp_dir, create=create)
 
+		if script and not exists(const.script_dir):
+			self.create_dir(const.script_dir, create=create)
+
 
 	def create_dir(self, path, create=True):
 		if create:
-			makedir(path)
+			mkdir(path)
 		else:
 			raise DataStoreError('%s does not exist'%path)
 

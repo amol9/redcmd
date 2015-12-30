@@ -22,11 +22,11 @@ script_dir		= None
 if is_linux() and getuid() == 0:
 	data_dir		= joinpath('/var/local', data_dir_name)
 	autocomp_dir		= joinpath(data_dir, 'autocomp')
-	script_dir		= joinpath(data_dir, 'script')
+	script_dir		= joinpath(data_dir, 'scripts')
 else:
 	data_dir		= joinpath(user_home, data_dir_name)
 	autocomp_dir		= joinpath(data_dir, 'autocomp')
-	script_dir		= joinpath(data_dir, 'script')
+	script_dir		= joinpath(data_dir, 'scripts')
 
 internal_subcmd		= 'redcmdinternal'
 prog_name		= 'redcmd'

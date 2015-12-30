@@ -4,6 +4,7 @@ from os import makedirs, remove
 from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
 from .shell_script_installer_factory import get_shell_script_installer
+from ..datastore import DataStore
 
 
 class InstallError(Exception):
@@ -14,6 +15,8 @@ class Installer:
 
 	def __init__(self):
 		self._shell_script_installer = get_shell_script_installer()
+		dstore = DataStore()
+		dstore.check_dir(autocomp=True)
 
 
 	def setup(self, command_name):

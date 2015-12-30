@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function _redcmd_autocomp_function()
 {
 	local cmd="${1##*/}"

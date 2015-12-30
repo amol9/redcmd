@@ -1,8 +1,10 @@
 from unittest import TestCase, main as ut_main
 from shutil import copy, copytree, rmtree
 import sys
-from os import makedirs, mkdir, rmdir, remove
+from os import makedirs, mkdir, rmdir, remove, getuid
 from os.path import exists, join as joinpath, basename, expanduser as eu
+
+from redlib.misc.textpatch import TextPatch
 
 from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 from redcmd import const
@@ -56,7 +58,43 @@ class TestBASHScriptInstaller(TestCase):
 
 
 	def test_setup_base(self):
-		pass
+		bsi = BASHScriptInstaller()
+		bsi.setup_base()
+
+		if getuid() == 0:
+			self.assertTrue(exists(bsi.profile_d_file))
+
+		self.assertTrue(exists(bsi.user_script_file))
+		self.assertTrue(exists(bsi.user_cmdlist_file))
+
+		tp = TextPatch(bsi.user_bashrc_file)
+		self.assertEquals(tp.find_line(bsi.id_prefix + 'user_script'), 1)
+
+
+	def test_remove_base(self):
+		bsi = BASHScriptInstaller()
+		bsi.remove_base()
+
+		if getuid() == 0:
+			self.assertFalse(exists(bsi.profile_d_file))
+
+		self.assertTrue(exists(bsi.user_script_file))
+		self.assertTrue(exists(bsi.user_cmdlist_file))
+
+		tp = TextPatch(bsi.user_bashrc_file)
+		self.assertEquals(tp.find_line(bsi.id_prefix + 'user_script'), 0)
+
+
+	def test_setup_cmd(self):
+		bsi = BASHScriptInstaller()
+		cmdname = 'testcommand123'
+		bsi.setup_cmd(cmdname)
+
+				
+	def test_remove_cmd(self):
+		bsi = BASHScriptInstaller()
+		cmdname = 'testcommand123'
+		bsi.remove_cmd(cmdname)
 
 
 if __name__ == '__main__':
