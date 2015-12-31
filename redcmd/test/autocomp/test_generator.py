@@ -10,10 +10,10 @@ class TestGenerator(TestCase):
 		from redcmd.test.autocomp import subcmd
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
-		cl.setup_autocomplete()
+		cl._command_collection.make_option_tree()
+		ot = cl._command_collection._optiontree
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
-		ot = cl._command_collection._optiontree
 
 		def gen(cmdline, lastword):
 			gen = Generator(cmdline, lastword)
@@ -26,7 +26,7 @@ class TestGenerator(TestCase):
 		self.assertEquals(gen('subcmd', 'x'), [])
 		self.assertEquals(gen('subcmd', 'ma'), ['math'])
 
-		self.assertRaises(GenError, gen, 'subcmd engine', '')
+		self.assertEquals(gen('subcmd engine', ''), [])
 		self.assertEquals(gen('subcmd set_engine', 'g'), ['google'])
 		self.assertEquals(gen('subcmd set_engine', 'b'), ['bing'])
 		self.assertEquals(gen('subcmd set_engine', 'x'), [])
@@ -59,6 +59,11 @@ class TestGenerator(TestCase):
 		self.assertEquals(gen('subcmd total -f true 10 20 30', ''), [])
 		self.assertEquals(gen('subcmd total 10 -f true 20 30', ''), [])
 		self.assertEquals(gen('subcmd total 10 20 30 -f', '-f'), ['-f'])
+
+		self.assertEquals(gen('subcmd display platform', ''), [])
+		self.assertEquals(gen('subcmd db search something', ''), [])
+		self.assertEquals(gen('subcmd search_config -m 10 -', '-'), ['--engine'])
+		self.assertEquals(gen('subcmd search_config -m 10 -x', '-x'), [])
 
 
 if __name__ == '__main__':

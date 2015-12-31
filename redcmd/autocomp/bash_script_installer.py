@@ -75,6 +75,7 @@ class BASHScriptInstaller:
 
 
 		if not self.base_setup(root=False):
+			print 'installing user script to %s'%self.user_script_file
 			with open(self.user_script_file, 'w') as f:
 				f.write(script + linesep)
 				f.write('source %s'%self.user_cmdlist_file + linesep)

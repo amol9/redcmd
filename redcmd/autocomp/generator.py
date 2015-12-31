@@ -63,8 +63,12 @@ class Generator:
 			node = find_by_name(words[i], node.children)
 
 			if node is None:
-				raise GenError('bad subcommand name: %s'%words[i])
+				return []
+
 			idx += 1
+
+		if node.children is None:
+			return []
 					
 		if has_subcmds(node):
 			if len(words) - (idx + 1) > 1:
@@ -115,7 +119,8 @@ class Generator:
 				name = opt.name if opt.name.startswith(lastword) else None
 				alias = opt.alias if opt.alias.startswith(lastword) else None
 
-				opt_pairs.append((name, alias))
+				if name is not None or alias is not None:
+					opt_pairs.append((name, alias))
 
 			options = []
 			if len(opt_pairs) == 1:		# if only one optional arg is matching, just return its full name (-- prefixed name)

@@ -17,10 +17,8 @@ class Installer:
 		self._shell_script_installer = get_shell_script_installer()
 
 
-	def setup(self, command_name):
-		command_collection = CommandCollection()
-		command_collection.make_option_tree()
-		
+	def setup(self, cmdname):
+		pass	
 
 	#add confirmation prompt
 	def remove(self, command_name):
@@ -52,11 +50,12 @@ class Installer:
 
 
 	def setup_cmd(self, cmdname):
+		command_collection = CommandCollection()
+		command_collection.make_option_tree()
+
 		self._shell_script_installer.setup_cmd(cmdname)
 
 
 	def remove_cmd(self, cmdname):
 		self._shell_script_installer.remove_cmd(cmdname)
-
-
 

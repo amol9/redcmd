@@ -21,12 +21,7 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		'''Install autocomplete for a command.
 		command_name: command name'''
 
-		installer = Installer()
-		try:
-			installer.setup(command_name)
-		except InstallError as e:
-			print(e)
-			raise CommandError()
+		self.exc_installer_method(Installer.setup_cmd, command_name)
 
 
 	@subcmd
@@ -34,30 +29,41 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		'''Uninstall autocomplete for a command.
 		command_name: command name'''
 
-		pass
+		self.exc_installer_method(Installer.remove_cmd, command_name)
 
 
 	@subcmd
 	def setupbase(self):
 		'Install common base scripts for autocomplete.'
-		pass
+		
+		self.exc_installer_method(Installer.setup_base)
 
 
 	@subcmd
 	def removebase(self):
 		'''Uninstall common base scripts for autocomplete.
 		Please note that all the commands setup for autocomplete will also be unregistered.'''
-		pass
+
+		self.exc_installer_method(Installer.remove_base)
+
+
+	def exc_installer_method(self, method, *args, **kwargs):
+		installer = Installer()
+		try:
+			method(installer, *args, **kwargs)
+		except InstallError as e:
+			print(e)
+			raise CommandError()
 
 
 	@subcmd
-	def gen(self, command_line, word):
+	def gen(self, command_line, comp_word):
 		'''Generate autocomplete options for a command.
-		command_line: command line so far
-		word: word to be auto-completed'''
+		command_line: 	command line so far
+		comp_word: 	word to be auto-completed'''
 
 		try:
-			g = Generator(command_line, word)
+			g = Generator(command_line, comp_word.strip())
 			g.load()
 			options = g.gen()
 
