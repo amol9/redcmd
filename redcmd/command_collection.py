@@ -212,7 +212,7 @@ class _CommandCollection:
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
-			default = names = choices = nargs = None	
+			default = names = choices = nargs = action = None	
 
 			if arg_index >= defaults_offset:		# argument has a default value
 				arg_default = argspec.defaults[arg_index - defaults_offset]
@@ -229,19 +229,30 @@ class _CommandCollection:
 					if (default is None and not arg_default.opt) or arg_default.pos:
 						names = [arg]		# positional argument
 				else:
-					default = arg_default
+					if type(arg_default) == bool:
+						if arg_default:
+							action = 'store_false'
+						else:
+							action = 'store_true'
+					else:
+						default = arg_default
 
 			else:
 				names = [arg]				# positional argument
 
-			kwargs = {
-				'default'	: default,
-				'choices'	: choices,
-				'help'		: help.get(arg, None)
-			}
-
-			if nargs is not None:
-				kwargs['nargs'] = nargs
+			if action is None:
+				kwargs = {
+					'default'	: default,
+					'choices'	: choices,
+					'help'		: help.get(arg, None)
+				}
+				if nargs is not None:
+					kwargs['nargs'] = nargs
+			else:
+				kwargs = {
+					'action'	: action,
+					'help'		: help.get(arg, None)
+				}
 
 			parser.add_argument(*names, **kwargs)
 			self.add_to_optiontree(names, default, choices)
