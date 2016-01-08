@@ -115,7 +115,7 @@ class Generator:
 
 		else:					# last word is an incomplete optional arg name
 			opt_pairs = []
-			for opt in sorted([o for o in optionals if o not in opt_seen], cmp=lambda x, y : cmp(x.name, y.name)):
+			for opt in sorted([o for o in optionals if o not in opt_seen], key=lambda n : n.name):
 				name = opt.name if opt.name.startswith(lastword) else None
 				alias = opt.alias if opt.alias.startswith(lastword) else None
 

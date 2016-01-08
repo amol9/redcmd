@@ -37,7 +37,7 @@ class DataStore:
 	def save_optiontree(self, ot, cmdname):
 		self.check_dir(data=False, autocomp=True)
 
-		with open(joinpath(const.autocomp_dir, cmdname), 'w') as f:
+		with open(joinpath(const.autocomp_dir, cmdname), 'wb') as f:
 			try:
 				pickledump([self.ot_version, ot], f)
 			except PicklingError as e:
@@ -48,7 +48,7 @@ class DataStore:
 	def load_optiontree(self, cmdname):
 		filepath = joinpath(const.autocomp_dir, cmdname)
 
-		with open(filepath, 'r') as f:
+		with open(filepath, 'rb') as f:
 			try:
 				data = pickleload(f)
 			except UnpicklingError as e:

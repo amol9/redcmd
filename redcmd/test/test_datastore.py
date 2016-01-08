@@ -31,7 +31,7 @@ class TestDataStore(TestCase):
 	
 		ot2 = ds.load_optiontree('test')
 		root = ot2._root
-		self.assertEquals(root._name, 'root')
+		self.assertEqual(root._name, 'root')
 
 
 if __name__ == '__main__':

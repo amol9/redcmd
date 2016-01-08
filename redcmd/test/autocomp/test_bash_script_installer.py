@@ -68,7 +68,7 @@ class TestBASHScriptInstaller(TestCase):
 		self.assertTrue(exists(bsi.user_cmdlist_file))
 
 		tp = TextPatch(bsi.user_bashrc_file)
-		self.assertEquals(tp.find_line(bsi.id_prefix + 'user_script'), 1)
+		self.assertEqual(tp.find_line(bsi.id_prefix + 'user_script'), 1)
 
 
 	def test_remove_base(self):
@@ -82,7 +82,7 @@ class TestBASHScriptInstaller(TestCase):
 		self.assertTrue(exists(bsi.user_cmdlist_file))
 
 		tp = TextPatch(bsi.user_bashrc_file)
-		self.assertEquals(tp.find_line(bsi.id_prefix + 'user_script'), 0)
+		self.assertEqual(tp.find_line(bsi.id_prefix + 'user_script'), 0)
 
 
 	def test_setup_cmd(self):

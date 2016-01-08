@@ -70,9 +70,10 @@ class CommandLine(object):
 
 	def setup_autocomplete(self, command_name=None):
 		installer = Installer()
+		command_name = command_name if command_name is not None else self._prog
 
 		try:
-			installer.setup(command_name)
+			installer.setup_cmd(command_name)
 		except InstallError as e:
 			print(e)
 
@@ -84,7 +85,7 @@ class CommandLine(object):
 			command_name = self._prog
 
 		try:
-			installer.remove(command_name)
+			installer.remove_cmd(command_name)
 		except InstallError as e:
 			print(e)
 

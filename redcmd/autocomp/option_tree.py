@@ -1,5 +1,7 @@
 import re
 
+from redlib.prnt import prints
+
 from .node import Node
 from .filter import apply_filters
 
@@ -57,7 +59,7 @@ class OptionTree:
 
 
 	def print_stack(self):
-		print 'stack: ',
+		prints('stack: ')
 		print(', '.join([e.name for e in reversed(self._stack)]))
 
 
