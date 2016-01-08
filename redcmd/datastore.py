@@ -72,7 +72,7 @@ class DataStore:
 
 	def remove_all_optiontrees(self):
 		for name in self.list_optiontree():
-			self.remove_file(name)
+			self.remove_optiontree(name)
 
 
 	def remove_file(self, filepath):

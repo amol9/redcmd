@@ -52,9 +52,10 @@ class _CommandCollection:
 		self._optiontree 		= None
 
 
-	def set_details(self, prog=None, description=None, version=None):
-		self._cmdparser.prog = prog
-		self._cmdparser.description = description
+	def set_details(self, prog=None, description=None, version=None, _to_hyphen=False):
+		self._cmdparser.prog 		= prog
+		self._cmdparser.description 	= description
+		self._to_hyphen 		= _to_hyphen
 
 		if version is not None:
 			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
@@ -181,12 +182,14 @@ class _CommandCollection:
 	def add_subcommand_to_spa(self, func, cmd_cls, spa):		# add subcommand parser to _SubParsersAction instance
 		assert spa.__class__ == _SubParsersAction
 
-		if func.__name__ in spa._name_parser_map:
+		subcmd_name = self.utoh(func.__name__)
+
+		if subcmd_name in spa._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
 		
 		help = docstring.extract_help(func)
 
-		parser = spa.add_parser(func.__name__,			# add parser for subcommand
+		parser = spa.add_parser(subcmd_name,			# add parser for subcommand
 				prog=self._cmdparser.prog + ' ' + func.__name__,
 				formatter_class=self._cmdparser.formatter_class,
 				description=help.get('short', None))
@@ -254,6 +257,7 @@ class _CommandCollection:
 					'help'		: help.get(arg, None)
 				}
 
+			names = [self.utoh(n) for n in names]
 			parser.add_argument(*names, **kwargs)
 			self.add_to_optiontree(names, default, choices)
 		# end: for loop
@@ -292,6 +296,13 @@ class _CommandCollection:
 			short = arg_name[0 : char_count]
 
 		return short
+
+
+	def utoh(self, name):
+		if self._to_hyphen:
+			return name.replace('_', '-')
+		else:
+			return name
 			
 
 	def add_maincommand_class(self, cls):		# find a subclass of Maincommand, find any method decorated by @maincmd

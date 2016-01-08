@@ -35,11 +35,11 @@ class BASHScriptInstaller:
 	def base_setup(self):
 		tpatch = TextPatch(self.user_bashrc_file)
 
-		user_setup = 	exists(self.user_script_file) and 
-				(tpatch.find_line(self.id_prefix + 'user_script') > 0) and
+		user_setup = 	exists(self.user_script_file) and \
+				(tpatch.find_line(self.id_prefix + 'user_script') > 0) and \
 				exists(self.user_cmdlist_file)
 
-		if getguid() == 0:
+		if getuid() == 0:
 			return exists(self.profile_d_file) and user_setup
 		else:
 			return user_setup
@@ -87,7 +87,7 @@ class BASHScriptInstaller:
 		elif count == 0:
 			tpatch.append_line("source \"%s\""%self.user_script_file, id=self.id_prefix + 'user_script')
 
-		if getguid() == 0:
+		if getuid() == 0:
 			print('BASH scripts have been setup for redcmd autocomplete.')
 		else:
 			print('BASH scripts have been setup for redcmd autocomplete for current user.\n' +
@@ -99,7 +99,7 @@ class BASHScriptInstaller:
 
 
 	def remove_base(self):
-		if getguid() == 0:
+		if getuid() == 0:
 			try:
 				remove(self.profile_d_file)
 			except OSError as e:
@@ -108,7 +108,7 @@ class BASHScriptInstaller:
 		tpatch = TextPatch(self.user_bashrc_file)
 		tpatch.remove_line(self.id_prefix + 'user_script')
 
-		if getguid() != 0:
+		if getuid() != 0:
 			print('Base script has been removed from ~/.bashrc, but not from %s.\n'%self.profile_d_dir +
 					'Please execute as root to remove it.')
 
@@ -122,7 +122,7 @@ class BASHScriptInstaller:
 
 		cmd = 'complete -F %s %s'%(const.autocomp_function, cmdname)
 
-		if getguid() == 0:
+		if getuid() == 0:
 			with open(joinpath(self.bash_completion_d_dir, cmdname), 'w') as f:
 					f.write(cmd + linesep)
 		
@@ -135,7 +135,7 @@ class BASHScriptInstaller:
 
 
 	def remove_cmd(self, cmdname):
-		if getguid() == 0:
+		if getuid() == 0:
 			filepath = joinpath(self.bash_completion_d_dir, cmdname)
 			if exists(filepath):
 				try:

@@ -1,4 +1,6 @@
 
+from six.moves import input
+
 from .. import subcmd, CommandError
 from ..autocomp.generator import Generator, GenError
 from ..autocomp.installer import Installer, InstallError
@@ -25,26 +27,44 @@ class AutocompSubSubcommands(AutocompSubcommand):
 
 
 	@subcmd
-	def remove(self, command_name, confirm=True):
+	def remove(self, command_name):
 		'''Uninstall autocomplete for a command.
 		command_name: command name'''
 
 		self.exc_installer_method(Installer.remove_cmd, command_name)
 
 
+	def confirm(self, message):
+		choice = input(message + ': ')
+		return choice == 'y'
+
+
 	@subcmd
-	def setupbase(self):
+	def remove_all(self, skip_confirm=False):
+		'''Remove autocomplete for all commands.
+
+		skip_confirm: Skip confirmation before removing all commands setup for autocomplete.'''
+
+		if skip_confirm or self.confirm('Are you sure you want to remove all commands setup for autocomplete?'):
+			self.exc_installer_method(Installer.remove_all)
+
+
+	@subcmd
+	def setup_base(self):
 		'Install common base scripts for autocomplete.'
 		
 		self.exc_installer_method(Installer.setup_base)
 
 
 	@subcmd
-	def removebase(self):
+	def remove_base(self, skip_confirm=False):
 		'''Uninstall common base scripts for autocomplete.
-		Please note that all the commands setup for autocomplete will also be unregistered.'''
+		Please note that all the commands setup for autocomplete will also be unregistered.
 
-		self.exc_installer_method(Installer.remove_base)
+		skip_confirm: Skip confirmation before removing all commands setup for autocomplete.'''
+
+		if skip_confirm or self.confirm('Are you sure you want to remove the base scripts setup for autocomplete?'):
+			self.exc_installer_method(Installer.remove_base)
 
 
 	def exc_installer_method(self, method, *args, **kwargs):

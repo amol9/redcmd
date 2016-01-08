@@ -17,6 +17,6 @@ class AddCommand(Maincommand):
 
 
 if __name__ == '__main__':
-	cl = CommandLine()
+	cl = CommandLine(_to_hyphen=True)
 	cl.execute()
 

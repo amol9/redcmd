@@ -11,9 +11,11 @@ from .autocomp.installer import Installer, InstallError
 class CommandLine(object):
 	'Command line handler.'
 
-	def __init__(self, prog=const.prog, description=const.description, version=const.version, default_subcommand=None, namespace=None):
+	def __init__(self, prog=const.prog, description=const.description, version=const.version, 
+			default_subcommand=None, namespace=None, _to_hyphen=False):
+
 		self._command_collection = CommandCollection()
-		self._command_collection.set_details(prog=prog, description=description, version=version)
+		self._command_collection.set_details(prog=prog, description=description, version=version, _to_hyphen=_to_hyphen)
 
 		self._default_subcommand = default_subcommand
 		self._namespace = namespace
