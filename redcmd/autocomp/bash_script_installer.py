@@ -1,14 +1,14 @@
-from os import access, getuid, linesep, chmod, lstat, W_OK, remove
-from os.path import exists, join as joinpath, dirname
 import stat
+from os.path import exists, join as joinpath, dirname
+from os import access, getuid, linesep, chmod, lstat, W_OK, remove
 
 from zope.interface import implementer
-from redlib.system.sys_command import sys_command
 from redlib.misc.textpatch import TextPatch
+from redlib.system.sys_command import sys_command
 
-from .shell_script_installer import IShellScriptInstaller
 from .. import const
 from ..datastore import DataStore
+from .shell_script_installer import IShellScriptInstaller
 
 
 @implementer(IShellScriptInstaller)
@@ -32,19 +32,17 @@ class BASHScriptInstaller:
 		dstore.check_dir(script=True)
 
 
-	def is_root(self):
-		return getuid() == 0
-
-
-	def base_setup(self, root=True, user=True):
-		#rc, _ = sys_command('type %s'%const.autocomp_function)
+	def base_setup(self):
 		tpatch = TextPatch(self.user_bashrc_file)
-		if root and user:
-			return exists(self.profile_d_file) and tpatch.find_line(self.id_prefix + 'user_script') > 0
-		elif root:
-			return exists(self.profile_d_file) 
+
+		user_setup = 	exists(self.user_script_file) and 
+				(tpatch.find_line(self.id_prefix + 'user_script') > 0) and
+				exists(self.user_cmdlist_file)
+
+		if getguid() == 0:
+			return exists(self.profile_d_file) and user_setup
 		else:
-			return tpatch.find_line(self.id_prefix + 'user_script') > 0
+			return user_setup
 
 
 	def completion_setup(self, cmdname):
@@ -56,47 +54,40 @@ class BASHScriptInstaller:
 
 
 	def setup_base(self):
-		if self.base_setup():
-			print('BASH base scripts already setup')
-			return
-
 		script = None
 		with open(self.script_template_file, 'r') as f:
 			script = f.read()
 
 		script = script.replace(self.template_func_name, const.autocomp_function)
-		
-		if self.is_root() and not self.base_setup(user=False):
+
+		if getuid() == 0:
 			if not access(self.profile_d_dir, W_OK):
 				raise ShellScriptInstallerError('cannot write to %s'%self.system_profile_dir)
 
 			with open(self.profile_d_file, 'w') as f:
 				f.write(script)
 
+		print('installing user script to %s'%self.user_script_file)
+		with open(self.user_script_file, 'w') as f:
+			f.write(script + linesep)
+			f.write('source %s'%self.user_cmdlist_file + linesep)
 
-		if not self.base_setup(root=False):
-			print('installing user script to %s'%self.user_script_file)
-			with open(self.user_script_file, 'w') as f:
-				f.write(script + linesep)
-				f.write('source %s'%self.user_cmdlist_file + linesep)
+		chmod(self.user_script_file, lstat(self.user_script_file).st_mode | stat.S_IXUSR)
 
-			chmod(self.user_script_file, lstat(self.user_script_file).st_mode | stat.S_IXUSR)
-
-			with open(self.user_cmdlist_file, 'w') as f:
-				pass
-
+		if not exists(self.user_cmdlist_file):
+			open(self.user_cmdlist_file, 'a').close()
 			chmod(self.user_cmdlist_file, lstat(self.user_cmdlist_file).st_mode | stat.S_IXUSR)
 
-			tpatch = TextPatch(self.user_bashrc_file)
-			id = self.id_prefix + 'user_script'
+		tpatch = TextPatch(self.user_bashrc_file)
+		id = self.id_prefix + 'user_script'
 
-			count = tpatch.find_line(id)
-			if count > 1:
-				tpatch.remove_line(id, count=count-1)
-			elif count == 0:
-				tpatch.append_line("source \"%s\""%self.user_script_file, id=self.id_prefix + 'user_script')
+		count = tpatch.find_line(id)
+		if count > 1:
+			tpatch.remove_line(id, count=count-1)
+		elif count == 0:
+			tpatch.append_line("source \"%s\""%self.user_script_file, id=self.id_prefix + 'user_script')
 
-		if self.is_root() or self.base_setup(user=False):
+		if getguid() == 0:
 			print('BASH scripts have been setup for redcmd autocomplete.')
 		else:
 			print('BASH scripts have been setup for redcmd autocomplete for current user.\n' +
@@ -108,39 +99,35 @@ class BASHScriptInstaller:
 
 
 	def remove_base(self):
-		if self.is_root() and self.base_setup(user=False):
+		if getguid() == 0:
 			try:
 				remove(self.profile_d_file)
 			except OSError as e:
 				raise ShellScriptInstallError(e.msg)
 		
-		if self.base_setup(root=False):
-			tpatch = TextPatch(self.user_bashrc_file)
-			tpatch.remove_line(self.id_prefix + 'user_script')
+		tpatch = TextPatch(self.user_bashrc_file)
+		tpatch.remove_line(self.id_prefix + 'user_script')
 
-		if not self.is_root() and self.base_setup(user=False):
+		if getguid() != 0:
 			print('Base script has been removed from ~/.bashrc, but not from %s.\n'%self.profile_d_dir +
 					'Please execute as root to remove it.')
 
 		# remove for current session
-		sys_command('unset -f %s'%const.autocomp_function)
+		#sys_command('unset -f %s'%const.autocomp_function)
 
 
 	def setup_cmd(self, cmdname):
 		if not self.base_setup():
 			self.setup_base()
 
-		if self.completion_setup(cmdname)[0]:
-			print('command: %s is already setup for autocomplete')
-			return
-		
 		cmd = 'complete -F %s %s'%(const.autocomp_function, cmdname)
 
-		if self.is_root():
+		if getguid() == 0:
 			with open(joinpath(self.bash_completion_d_dir, cmdname), 'w') as f:
 					f.write(cmd + linesep)
-		else:
-			tp = TextPatch(self.user_cmdlist_file)
+		
+		tp = TextPatch(self.user_cmdlist_file)
+		if not tp.find_line(self.id_prefix + cmdname):
 			tp.append_line(cmd, id=self.id_prefix + cmdname)
 
 		# export for current session
@@ -148,21 +135,22 @@ class BASHScriptInstaller:
 
 
 	def remove_cmd(self, cmdname):
-		removed = False
-		if self.is_root():
+		if getguid() == 0:
 			filepath = joinpath(self.bash_completion_d_dir, cmdname)
 			if exists(filepath):
-				remove(filepath)
-				removed = True
+				try:
+					remove(filepath)
+				except OSError as e:
+					print(e)
 
-		tpatch = TextPatch(self.user_cmdlist_file)
-		removed |= tpatch.remove_line(self.id_prefix + cmdname) > 0
+		try:
+			tpatch = TextPatch(self.user_cmdlist_file)
+			tpatch.remove_line(self.id_prefix + cmdname)
+		except textpatchError as e:
+			raise ShellScriptInstallerError(e)
 
-		if not removed:
-			print('command: %s is not registered for autocomplete'%cmdname)
-		else:
-			# remove for current session
-			# sys_command('complete -r %s'%cmdname)
+		print('autocomplete for %s removed'%cmdname)
 
-			print('autocomplete for %s removed'%cmdname)
+		# remove for current session
+		# sys_command('complete -r %s'%cmdname)
 

@@ -1,4 +1,4 @@
-from os import mkdir, walk
+from os import mkdir, walk, remove
 from os.path import exists, join as joinpath
 from pickle import dump as pickledump, load as pickleload, PicklingError, UnpicklingError
 
@@ -48,6 +48,11 @@ class DataStore:
 	def load_optiontree(self, cmdname):
 		filepath = joinpath(const.autocomp_dir, cmdname)
 
+		if not exists(filepath):
+			filepath = joinpath(const.root_data_dir, cmdname)
+			if not exists(filepath):
+				raise DataStoreError('unable to load option tree')
+
 		with open(filepath, 'rb') as f:
 			try:
 				data = pickleload(f)
@@ -59,22 +64,28 @@ class DataStore:
 				raise DataStoreError('cannot load greater ot_version, %s > %s'%(version, self.version))
 			return data[1]
 
-		# check user dir and /var/local
-
 
 	def remove_optiontree(self, cmdname):
-		pass
+		filepath = joinpath(const.autocomp_dir, cmdname)
+		self.remove_file(filepath)
+
+
+	def remove_all_optiontrees(self):
+		for name in self.list_optiontree():
+			self.remove_file(name)
+
+
+	def remove_file(self, filepath):
+		if exists(filepath):
+			try:
+				remove(filepath)
+				return True
+			except OSError as e:
+				print(e)
+				return False
 
 
 	def list_optiontree(self):
 		for _, _, files in walk(const.autocomp_dir):
 			return files
-
-
-	def load_script(self):
-		pass
-
-
-	def save_script(self):
-		pass
 

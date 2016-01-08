@@ -17,30 +17,6 @@ class Installer:
 		self._shell_script_installer = get_shell_script_installer()
 
 
-	def setup(self, cmdname):
-		pass	
-
-	#add confirmation prompt
-	def remove(self, command_name):
-		if not exists(const.autocomp_dir_path):
-			raise InstallError('autocomplete data dir not found: %s'%const.autocomp_dir_path)
-
-		filepath = joinpath(const.autocomp_dir_path, command_name)
-
-		if not exists(filepath):
-			raise InstallError('no command named %s is setup for autocomplete'%command_name)
-
-		try:
-			remove(filepath)
-		except OSError as e:
-			print(e)
-			raise InstallError('unable to remove autocomplete data for %s'%command_name)
-
-
-	def base_installed(self):
-		return self._shell_script_installer.base_installed()
-
-
 	def setup_base(self):
 		self._shell_script_installer.setup_base()
 
@@ -57,5 +33,13 @@ class Installer:
 
 
 	def remove_cmd(self, cmdname):
+		dstore = DataStore()
+		dstore.remove_optiontree(cmdname)
+
 		self._shell_script_installer.remove_cmd(cmdname)
+
+
+	def remove_all(self):
+		dstore = DataStore()
+		dstore.remove_all_optiontrees()
 
