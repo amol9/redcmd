@@ -1,4 +1,4 @@
-from argparse import HelpFormatter, _SubParsersAction, SUPPRESS
+from argparse import HelpFormatter, _SubParsersAction, SUPPRESS, Action
 import os
 import textwrap
 
@@ -31,13 +31,22 @@ class CommandHelpFormatter(HelpFormatter):
 
 		optionals = []
 		positionals = []
+		col1 = 15
+
 		for action in actions:
 			if action.option_strings:
 				optionals.append(action)
+				names_len = len(', '.join(action.option_strings)) + 2
+				col1 = names_len if names_len > col1 else col1
 			else:
 				positionals.append(action)
+				name_len = 0
+				if action.__class__ == _SubParsersAction:
+					name_len = max([len(n) for n in action.choices.keys()])
+				else:
+					name_len = action.dest
+				col1 = names_len if names_len > col1 else col1
 
-		col1 = 15
 		terminal_width, _ = terminalsize.get_terminal_size()
 		col2 = terminal_width - col1
 		
@@ -59,7 +68,7 @@ class CommandHelpFormatter(HelpFormatter):
 				out += os.linesep
 			return out
 
-		def format_action(name, helptext, choices, default):
+		def format_action(name, helptext, choices, default, action):
 
 			out = ''
 			def wrap(text):
@@ -78,34 +87,37 @@ class CommandHelpFormatter(HelpFormatter):
 
 			choices_lines = wrap(choices)
 
-			if not default in [None, SUPPRESS] :
-				default = 'default: ' + str(default)
-			else:
-				default = None
-			
-			default_lines = wrap(default)
+			default_lines = []
+
+			if not action:
+				if not default in [None, SUPPRESS] :
+					default = 'default: ' + str(default)
+				else:
+					default = None
+				
+				default_lines = wrap(default)
 
 			out += ('{0:<%d}'%(col1)).format(name)			
 			out += format_help_lines(help_lines + choices_lines + default_lines)
 
 			return out
 
-
 		for o in optionals:
 			name = ', '.join(o.option_strings)
-			help += format_action(name, o.help, o.choices, o.default)
+			action = True if issubclass(o.__class__, Action) else False
+			help += format_action(name, o.help, o.choices, o.default, action)
 			usage += '[%s] '%name
 
 		for p in positionals:
 			if p.__class__ == _SubParsersAction:
 				help += os.linesep + 'subcommands:' + os.linesep
 				for subcmd in p.choices.keys():
-					help += format_action(subcmd, p.choices[subcmd].description, None, None)
+					help += format_action(subcmd, p.choices[subcmd].description, None, None, False)
 
 				usage += 'subcommand [args...]'
 		
 			else:
-				help += format_action(p.dest, p.help, p.choices, p.default)
+				help += format_action(p.dest, p.help, p.choices, p.default, False)
 				usage += '%s '%p.dest
 
 		if self._extrahelp is not None:

@@ -6,6 +6,10 @@ class AddCommand(Maincommand):
 
 	@maincmd
 	def add(self, a, b, c, floating_point=False):
+		'''Add numbers.
+
+		floating_point: Perform a floating point addition.'''
+
 		if not floating_point:
 			print(int(a) + int(b) + int(c))
 		else:
