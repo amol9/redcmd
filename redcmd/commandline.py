@@ -1,6 +1,6 @@
 import sys
 
-from .exc import CommandError, CommandCollectionError
+from .exc import CommandCollectionError
 from .command_collection import CommandCollection
 from . import const
 from .client.autocomp_subcommand import *
@@ -43,11 +43,8 @@ class CommandLine(object):
 	
 		try:
 			self._command_collection.execute(args, namespace)
-		except CommandError as e:
-			print(e)
-			sys.exit(1)
-
-		sys.exit(0)
+		except CommandCollectionError as e:
+			raise CommandLineError(e)
 
 
 	def execute_internal(self, args=None, namespace=None):
@@ -58,10 +55,8 @@ class CommandLine(object):
 
 		try:
 			self._command_collection.execute(args, namespace, internal=True)
-		except CommandError as e:
-			print(e)
-			sys.exit(1)
-		sys.exit(0)
+		except CommandCollectionError as e:
+			raise CommandLineError(e)
 
 
 	def set_default_subcommand(self, name):

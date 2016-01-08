@@ -1,5 +1,5 @@
 import inspect
-from argparse import ArgumentParser, _SubParsersAction
+from argparse import _SubParsersAction
 
 from redlib.misc import Singleton, docstring
 
@@ -9,7 +9,7 @@ from .arg import Arg
 from .cmdfunc import CmdFunc
 from .maincommand import Maincommand
 from .subcommand import Subcommand, InternalSubcommand
-from .exc import CommandCollectionError
+from .exc import CommandError, CommandCollectionError
 from . import const
 from .autocomp.option_tree import OptionTree, OptionTreeError
 from .autocomp.node import Node
@@ -167,6 +167,7 @@ class _CommandCollection:
 		
 		if subparsers is None:
 			spa = parent.add_subparsers(dest=group_name)
+			spa.required = True
 
 			if parent._defaults.get('cmd_func', None) is not None:	# if parent has a default, subcommands will use that
 				del parent._defaults['cmd_func']
@@ -318,12 +319,14 @@ class _CommandCollection:
 		else:
 			args = self._internal_cmdparser.parse_args(args, namespace)
 
-		try:
-			cmd_func = args.cmd_func
-			cmd_func.execute(args)
-		except AttributeError as e:
-			print(e)
+		cmd_func = getattr(args, 'cmd_func', None)
+		if cmd_func is None:
 			raise CommandCollectionError('target function for command not found')
+
+		try:
+			cmd_func.execute(args)
+		except CommandError as e:
+			raise CommandCollectionError(e)
 
 
 class CommandCollection(Singleton):

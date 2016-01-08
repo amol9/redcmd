@@ -63,7 +63,6 @@ class TestOptionTree(TestCase):
 		self.assertEqual(root.name, 'subcmd')
 		self.assertIsNotNone(root.children)
 		
-		cmp_nodes = lambda x, y : cmp(x.name, y.name) 
 		key_node = lambda n : n.name
 		sub = sorted(root.children, key=key_node)
 

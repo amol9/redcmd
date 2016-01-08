@@ -41,6 +41,17 @@ class CommandParser(ArgumentParser):
 		should either exit or raise an exception.
 		"""
 		#self.print_usage(_sys.stderr)
+
+		# fix to work around change in python3.3 onwards, where subparsers were made optional
+		# ref: http://bugs.python.org/issue9253
+		# only if required is set to True for a subparser, it prints error if no arguments are provided
+		# where a subcommand is expected
+		# but, the error message has group_name as suggestion and as such only prints group name of first subparser
+		# in the error message
+		# so, the following condition just changes the message to a general error message
+		if message.startswith("the following arguments"):
+			message = "too few arguments"
+
 		self.exit(2, ('%s: error: %s\n') % (self.prog, message))
 
 
