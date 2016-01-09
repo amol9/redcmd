@@ -10,7 +10,7 @@ class OptionTreeError(Exception):
 	pass
 
 
-class OptionTree:
+class OptionTree(object):
 	version = '1.0'
 
 	def __init__(self):

@@ -49,6 +49,7 @@ class DisplaySubSubcommands(DisplaySubcommand):
 
 
 if __name__ == '__main__':
+	print('subcmd')
 	cmdline = CommandLine(prog='subcmd', description='A program to test subcommand addition using subclassing.',
 			version='1.0.0')
 	try:

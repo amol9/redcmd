@@ -8,6 +8,7 @@ class CmdFunc:
 
 	
 	def execute(self, args):
+		#import pdb; pdb.set_trace()
 		arg_list = [getattr(args, name) for name in self.arg_names]
 
 		if self.cmd_cls is not None:

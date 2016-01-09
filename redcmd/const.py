@@ -30,6 +30,7 @@ else:
 	script_dir		= joinpath(data_dir, 'scripts')
 
 internal_subcmd		= 'redcmdinternal'
+internal_dummy_cmdname	= 'redcmdinternalcmd'
 prog_name		= 'redcmd'
 
 autocomp_function	= '__redcmd_autocomp'

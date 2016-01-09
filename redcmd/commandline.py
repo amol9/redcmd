@@ -1,6 +1,6 @@
 import sys
 
-from .exc import CommandCollectionError
+from .exc import CommandCollectionError, CommandLineError
 from .command_collection import CommandCollection
 from . import const
 from .client.autocomp_subcommand import *
@@ -50,6 +50,7 @@ class CommandLine(object):
 
 
 	def execute_internal(self, args=None, namespace=None):
+		print('dbg exe internal cmdline')
 		try:
 			self._command_collection.add_internal_commands()
 		except CommandCollectionError as e:

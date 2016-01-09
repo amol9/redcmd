@@ -1,5 +1,5 @@
 
-class Node:
+class Node(object):
 
 	def __init__(self, name, alias=None, filters=None, subcmd=False):
 		self._name 	= name

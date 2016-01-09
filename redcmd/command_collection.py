@@ -61,6 +61,10 @@ class _CommandCollection:
 			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
 
 
+	def get_prog(self):
+		return self._cmdparser.prog
+
+
 	def make_option_tree(self, command_name=None):
 		command_name = self._cmdparser.prog if command_name is None else command_name
 
@@ -257,7 +261,11 @@ class _CommandCollection:
 					'help'		: help.get(arg, None)
 				}
 
-			names = [self.utoh(n) for n in names]
+			if len(names) == 1:
+				kwargs['metavar'] = self.utoh(names[0])
+			else:
+				names = [self.utoh(n) for n in names]
+
 			parser.add_argument(*names, **kwargs)
 			self.add_to_optiontree(names, default, choices)
 		# end: for loop
@@ -349,6 +357,9 @@ class _CommandCollection:
 			cmd_func.execute(args)
 		except CommandError as e:
 			raise CommandCollectionError(e)
+
+
+	prog = property(get_prog)
 
 
 class CommandCollection(Singleton):

@@ -6,6 +6,7 @@ from ..autocomp.generator import Generator, GenError
 from ..autocomp.installer import Installer, InstallError
 from .redcmd_internal_subcommand import RedcmdInternalSubcommand
 from ..datastore import DataStore, DataStoreError
+from .. import const
 
 
 class AutocompSubcommand(RedcmdInternalSubcommand):
@@ -23,7 +24,15 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		'''Install autocomplete for a command.
 		command_name: command name'''
 
-		self.exc_installer_method(Installer.setup_cmd, command_name)
+		msg_template = '{0} will now be executed for it to be setup for autocomplete.\n' + \
+				'Any actions, side effects, changes that take place as a result of executing {0} will take place.\n' + \
+				'Note: Autocomplete setup will only work if the {0} uses redcmd for argument parsing.\n' + \
+				'Are you sure you want to continue?'
+
+		message = msg_template.format(command_name)
+
+		if command_name == const.internal_dummy_cmdname or self.confirm(message):
+			self.exc_installer_method(Installer.setup_cmd, command_name)
 
 
 	@subcmd
@@ -35,7 +44,7 @@ class AutocompSubSubcommands(AutocompSubcommand):
 
 
 	def confirm(self, message):
-		choice = input(message + ': ')
+		choice = input(message + ' [y/n]: ')
 		return choice == 'y'
 
 

@@ -93,7 +93,7 @@ class TestBASHScriptInstaller(TestCase):
 				
 	def test_remove_cmd(self):
 		bsi = BASHScriptInstaller()
-		cmdname = 'testcommand123'
+		cmdname = 'subcmd' #'testcommand123'
 		bsi.remove_cmd(cmdname)
 
 
