@@ -34,6 +34,14 @@ class TestDataStore(TestCase):
 		self.assertEqual(root._name, 'root')
 
 
+	def test_list(self):
+		ds = DataStore()
+		commands = ds.list_optiontree()
+
+		for c in commands:
+			print(c)
+
+
 if __name__ == '__main__':
 	ut_main()
 

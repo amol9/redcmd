@@ -2,6 +2,10 @@
 from zope.interface import Interface
 
 
+class ShellScriptInstallError(Exception):
+	pass
+
+
 class IShellScriptInstaller(Interface):
 
 	def setup_base():

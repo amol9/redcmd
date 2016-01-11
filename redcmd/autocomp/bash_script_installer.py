@@ -8,7 +8,7 @@ from redlib.system.sys_command import sys_command
 
 from .. import const
 from ..datastore import DataStore
-from .shell_script_installer import IShellScriptInstaller
+from .shell_script_installer import IShellScriptInstaller, ShellScriptInstallError
 
 
 @implementer(IShellScriptInstaller)
@@ -67,7 +67,6 @@ class BASHScriptInstaller:
 			with open(self.profile_d_file, 'w') as f:
 				f.write(script)
 
-		print('installing user script to %s'%self.user_script_file)
 		with open(self.user_script_file, 'w') as f:
 			f.write(script + linesep)
 			f.write('source %s'%self.user_cmdlist_file + linesep)
@@ -102,15 +101,20 @@ class BASHScriptInstaller:
 		if getuid() == 0:
 			try:
 				remove(self.profile_d_file)
-			except OSError as e:
-				raise ShellScriptInstallError(e.msg)
+			except FileNotFoundError:
+				pass
+			except IOError as e:
+				raise ShellScriptInstallError(str(e))
 		
 		tpatch = TextPatch(self.user_bashrc_file)
 		tpatch.remove_line(self.id_prefix + 'user_script')
 
-		if getuid() != 0:
-			print('Base script has been removed from ~/.bashrc, but not from %s.\n'%self.profile_d_dir +
-					'Please execute as root to remove it.')
+		if getuid() != 0 and exists(self.profile_d_file):
+			print('Base script has been removed from %s, but not from %s.\n'%(self.user_bashrc_file, self.profile_d_dir) +
+				'Autocomplete supported by redcmd will still for commands setup for system wide autocomplete (i.e. as root).\n' +
+				'Please execute as root to remove them.')
+		else:
+			print('Base scripts have been removed. Autocomplete supported by redcmd will no longer work.')
 
 		# remove for current session
 		#sys_command('unset -f %s'%const.autocomp_function)

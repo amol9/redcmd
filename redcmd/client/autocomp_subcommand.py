@@ -105,7 +105,11 @@ class AutocompSubSubcommands(AutocompSubcommand):
 
 	@subcmd
 	def list(self):
-		'List the commands registered for autocomplete.'
+		'''List the commands registered for autocomplete.
+		Key:
+		[user]: installed for current user
+		[all]: 	installed for everyone
+		[user, all]: installed for current user as well as everyone'''
 
 		try:
 			dstore = DataStore()

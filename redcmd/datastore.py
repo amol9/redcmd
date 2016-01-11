@@ -90,6 +90,19 @@ class DataStore:
 
 
 	def list_optiontree(self):
+		commands = {}
+
 		for _, _, files in walk(const.autocomp_dir):
-			return files
+			for f in files:
+				commands[f] = ['user']
+
+		for _, _, files in walk(joinpath(const.root_autocomp_dir)):
+			for f in files:
+				if commands.get(f, None) is not None:
+					commands[f].append('all')
+				else:
+					commands[f] = ['all']
+
+		return [k + ' [' + ', '.join(v) + ']' for k, v in commands.items()]
+
 

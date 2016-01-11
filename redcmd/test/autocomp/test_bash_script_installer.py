@@ -2,7 +2,8 @@ from unittest import TestCase, main as ut_main
 from shutil import copy, copytree, rmtree
 import sys
 from os import makedirs, mkdir, rmdir, remove, getuid
-from os.path import exists, join as joinpath, basename, expanduser as eu
+from os.path import exists, join as joinpath, basename, expanduser as eu, dirname
+import os
 
 from redlib.misc.textpatch import TextPatch
 
@@ -18,10 +19,13 @@ from redcmd import const
 # -
 
 class TestBASHScriptInstaller(TestCase):
-	test_home = './home'
-	backup_path = eu('~/rcbackup')
-	backup_dirs = ['/etc/profile.d', '/etc/bash_completion.d']
-	backup_files = [eu('~/.bashrc')]
+
+	test_home 	= './home'
+	backup_path 	= eu('~/rcbackup')
+	backup_dirs 	= ['/etc/profile.d', '/etc/bash_completion.d']
+	backup_files 	= [eu('~/.bashrc')]
+	test_cmd	= 'subcmd'
+
 
 	@classmethod
 	def setUpClass(cls):
@@ -32,6 +36,9 @@ class TestBASHScriptInstaller(TestCase):
 		cls.saved_user_home = const.user_home
 		const.user_home = cls.test_home
 
+		cls.saved_env_path = os.environ.get('PATH', '')
+		os.environ['PATH'] = cls.saved_env_path + os.pathsep + dirname(__file__)
+
 
 	@classmethod
 	def tearDownClass(cls):
@@ -39,6 +46,7 @@ class TestBASHScriptInstaller(TestCase):
 			rmdir(cls.test_home)
 
 		const.user_home = cls.saved_user_home
+		os.environ['PATH'] = cls.saved_env_path
 
 
 	@classmethod
@@ -87,13 +95,13 @@ class TestBASHScriptInstaller(TestCase):
 
 	def test_setup_cmd(self):
 		bsi = BASHScriptInstaller()
-		cmdname = 'subcmd' #'testcommand123'
+		cmdname = self.test_cmd 
 		bsi.setup_cmd(cmdname)
 
 				
 	def test_remove_cmd(self):
 		bsi = BASHScriptInstaller()
-		cmdname = 'subcmd' #'testcommand123'
+		cmdname = self.test_cmd 
 		bsi.remove_cmd(cmdname)
 
 
