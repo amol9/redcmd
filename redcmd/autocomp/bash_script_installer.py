@@ -3,7 +3,7 @@ from os.path import exists, join as joinpath, dirname
 from os import access, getuid, linesep, chmod, lstat, W_OK, remove
 
 from zope.interface import implementer
-from redlib.misc.textpatch import TextPatch
+from redlib.misc.textfile import TextFile
 from redlib.system.sys_command import sys_command
 
 from .. import const
@@ -33,10 +33,10 @@ class BASHScriptInstaller:
 
 
 	def base_setup(self):
-		tpatch = TextPatch(self.user_bashrc_file)
+		tfile = TextFile(self.user_bashrc_file)
 
 		user_setup = 	exists(self.user_script_file) and \
-				(tpatch.find_line(self.id_prefix + 'user_script') > 0) and \
+				(tfile.find_lines(self.id_prefix + 'user_script') > 0) and \
 				exists(self.user_cmdlist_file)
 
 		if getuid() == 0:
@@ -77,14 +77,14 @@ class BASHScriptInstaller:
 			open(self.user_cmdlist_file, 'a').close()
 			chmod(self.user_cmdlist_file, lstat(self.user_cmdlist_file).st_mode | stat.S_IXUSR)
 
-		tpatch = TextPatch(self.user_bashrc_file)
+		tfile = TextFile(self.user_bashrc_file)
 		id = self.id_prefix + 'user_script'
 
-		count = tpatch.find_line(id)
+		count = tfile.find_lines(id)
 		if count > 1:
-			tpatch.remove_line(id, count=count-1)
+			tfile.remove_line(id, count=count-1)
 		elif count == 0:
-			tpatch.append_line("source \"%s\""%self.user_script_file, id=self.id_prefix + 'user_script')
+			tfile.append_line("source \"%s\""%self.user_script_file, id=self.id_prefix + 'user_script')
 
 		if getuid() == 0:
 			print('BASH scripts have been setup for redcmd autocomplete.')
@@ -106,8 +106,8 @@ class BASHScriptInstaller:
 			except IOError as e:
 				raise ShellScriptInstallError(str(e))
 		
-		tpatch = TextPatch(self.user_bashrc_file)
-		tpatch.remove_line(self.id_prefix + 'user_script')
+		tfile = TextFile(self.user_bashrc_file)
+		tfile.remove_line(self.id_prefix + 'user_script')
 
 		if getuid() != 0 and exists(self.profile_d_file):
 			print('Base script has been removed from %s, but not from %s.\n'%(self.user_bashrc_file, self.profile_d_dir) +
@@ -130,8 +130,8 @@ class BASHScriptInstaller:
 			with open(joinpath(self.bash_completion_d_dir, cmdname), 'w') as f:
 					f.write(cmd + linesep)
 		
-		tp = TextPatch(self.user_cmdlist_file)
-		if not tp.find_line(self.id_prefix + cmdname):
+		tp = TextFile(self.user_cmdlist_file)
+		if not tp.find_lines(self.id_prefix + cmdname):
 			tp.append_line(cmd, id=self.id_prefix + cmdname)
 
 		# export for current session
@@ -148,9 +148,9 @@ class BASHScriptInstaller:
 					print(e)
 
 		try:
-			tpatch = TextPatch(self.user_cmdlist_file)
-			tpatch.remove_line(self.id_prefix + cmdname)
-		except textpatchError as e:
+			tfile = TextFile(self.user_cmdlist_file)
+			tfile.remove_line(self.id_prefix + cmdname)
+		except textfileError as e:
 			raise ShellScriptInstallerError(e)
 
 		print('autocomplete for %s removed'%cmdname)

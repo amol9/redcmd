@@ -5,7 +5,7 @@ from os import makedirs, mkdir, rmdir, remove, getuid
 from os.path import exists, join as joinpath, basename, expanduser as eu, dirname
 import os
 
-from redlib.misc.textpatch import TextPatch
+from redlib.misc.textfile import TextFile
 
 from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 from redcmd import const
@@ -75,8 +75,8 @@ class TestBASHScriptInstaller(TestCase):
 		self.assertTrue(exists(bsi.user_script_file))
 		self.assertTrue(exists(bsi.user_cmdlist_file))
 
-		tp = TextPatch(bsi.user_bashrc_file)
-		self.assertEqual(tp.find_line(bsi.id_prefix + 'user_script'), 1)
+		tf = TextFile(bsi.user_bashrc_file)
+		self.assertEqual(tf.find_lines(bsi.id_prefix + 'user_script'), 1)
 
 
 	def test_remove_base(self):
@@ -89,8 +89,8 @@ class TestBASHScriptInstaller(TestCase):
 		self.assertTrue(exists(bsi.user_script_file))
 		self.assertTrue(exists(bsi.user_cmdlist_file))
 
-		tp = TextPatch(bsi.user_bashrc_file)
-		self.assertEqual(tp.find_line(bsi.id_prefix + 'user_script'), 0)
+		tf = TextFile(bsi.user_bashrc_file)
+		self.assertEqual(tf.find_lines(bsi.id_prefix + 'user_script'), 0)
 
 
 	def test_setup_cmd(self):
