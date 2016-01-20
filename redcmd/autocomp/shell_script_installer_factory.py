@@ -1,6 +1,6 @@
 import os
 
-from redlib.system.common import is_linux, is_windows
+from redlib.api.system import is_linux, is_windows
 
 from .bash_script_installer import BASHScriptInstaller
 from .posh_script_installer import PoshScriptInstaller

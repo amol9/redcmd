@@ -3,8 +3,8 @@ from os.path import exists, join as joinpath, dirname
 from os import access, getuid, linesep, chmod, lstat, W_OK, remove
 
 from zope.interface import implementer
-from redlib.misc.textfile import TextFile
-from redlib.system.sys_command import sys_command
+from redlib.api.misc import TextFile
+from redlib.api.system import sys_command
 
 from .. import const
 from ..datastore import DataStore

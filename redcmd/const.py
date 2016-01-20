@@ -1,7 +1,7 @@
 from os.path import join as joinpath, expanduser
 from os import getuid
 
-from redlib.system.common import is_linux
+from redlib.api.system import is_linux
 
 
 subcmd_attr 		= '__subcmd__'

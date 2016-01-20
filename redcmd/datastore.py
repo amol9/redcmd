@@ -2,7 +2,7 @@ from os import mkdir, walk, remove
 from os.path import exists, join as joinpath
 from pickle import PicklingError, UnpicklingError
 
-from redlib.api import redsix
+from redlib.api.py23 import pickledump, pickleload
 
 
 from . import const
@@ -43,7 +43,7 @@ class DataStore:
 
 		with open(joinpath(const.autocomp_dir, cmdname), 'wb') as f:
 			try:
-				redsix.pickledump([self.ot_version, ot], f, protocol=self.pickle_protocol, fix_imports=True)
+				pickledump([self.ot_version, ot], f, protocol=self.pickle_protocol, fix_imports=True)
 			except PicklingError as e:
 				print(e)
 				raise DataStoreError('unable to save option tree')
@@ -59,7 +59,7 @@ class DataStore:
 
 		with open(filepath, 'rb') as f:
 			try:
-				data = redsix.pickleload(f,fix_imports=True)
+				data = pickleload(f,fix_imports=True)
 			except UnpicklingError as e:
 				log.error(str(e))
 
@@ -104,5 +104,4 @@ class DataStore:
 					commands[f] = ['all']
 
 		return [k + ' [' + ', '.join(v) + ']' for k, v in commands.items()]
-
 

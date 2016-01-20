@@ -8,7 +8,7 @@ from redcmd import const
 
 
 class TestInstaller(TestCase):
-
+	remove_files = True
 	test_cmd = 'subcmd'
 
 	@classmethod
@@ -27,8 +27,15 @@ class TestInstaller(TestCase):
 		installer.setup_cmd(self.test_cmd)
 
 		self.assertTrue(exists(joinpath(const.autocomp_dir, self.test_cmd)))
+		
+		if self.remove_files:
+			try:
+				remove(joinpath(self.autocomp_dir, self.test_cmd))
+			except IOError:
+				pass
 
 
 if __name__ == '__main__':
+	TestInstaller.remove_files = False
 	ut_main()
 

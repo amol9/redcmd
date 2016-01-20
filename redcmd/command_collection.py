@@ -1,7 +1,7 @@
 import inspect
 from argparse import _SubParsersAction
 
-from redlib.misc import Singleton, docstring
+from redlib.api.misc import Singleton, extract_help
 
 from .command_help_formatter import CommandHelpFormatter
 from .commandparser import CommandParser
@@ -191,7 +191,7 @@ class _CommandCollection:
 		if subcmd_name in spa._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
 		
-		help = docstring.extract_help(func)
+		help = extract_help(func)
 
 		parser = spa.add_parser(subcmd_name,			# add parser for subcommand
 				prog=self._cmdparser.prog + ' ' + func.__name__,
@@ -204,7 +204,7 @@ class _CommandCollection:
 			
 
 	def add_args_to_parser(self, func, cmd_cls, parser):		# extract function argument information
-		help = docstring.extract_help(func)			# and add them to parser,
+		help = extract_help(func)				# and add them to parser,
 									# extract help and add it to parser
 		argspec = inspect.getargspec(func)
 		if cmd_cls is not None:

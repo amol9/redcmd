@@ -1,6 +1,6 @@
 import re
 
-from redlib.prnt import prints
+from redlib.api.prnt import prints
 
 from .node import Node
 from .filter import apply_filters

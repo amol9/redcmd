@@ -1,14 +1,14 @@
 from unittest import TestCase, main as ut_main
-from shutil import copy, copytree, rmtree
+import os
 import sys
+from shutil import copy, copytree, rmtree
 from os import makedirs, mkdir, rmdir, remove, getuid
 from os.path import exists, join as joinpath, basename, expanduser as eu, dirname
-import os
 
-from redlib.misc.textfile import TextFile
+from redlib.api.misc import TextFile
 
-from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 from redcmd import const
+from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 
 
 # ***WARNING*** 

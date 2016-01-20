@@ -1,7 +1,7 @@
 from os.path import exists, join as joinpath
 from os import makedirs, remove
 
-from redlib.system import sys_command
+from redlib.api.system import sys_command
 
 from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
@@ -29,7 +29,6 @@ class Installer:
 
 	def setup_cmd(self, cmdname):
 		if cmdname == const.internal_dummy_cmdname:
-			print('internal cmd')
 			command_collection = CommandCollection()
 			cmdname = command_collection.prog
 
@@ -43,7 +42,6 @@ class Installer:
 			except ShellScriptInstallError as e:
 				raise InstallError(e)
 		else:
-			print('sys command')
 			cmd = cmdname + ' ' + const.internal_subcmd + ' autocomp setup ' + const.internal_dummy_cmdname
 			print(cmd)
 			rc, op = sys_command(cmd)

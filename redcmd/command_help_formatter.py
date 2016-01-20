@@ -2,8 +2,8 @@ from argparse import HelpFormatter, _SubParsersAction, SUPPRESS, Action
 import os
 import textwrap
 
-from redlib.misc import docstring
-from redlib.system import terminalsize
+from redlib.api.misc import trim_docstring
+from redlib.api.system import get_terminal_size
 
 
 class CommandHelpFormatter(HelpFormatter):
@@ -47,7 +47,7 @@ class CommandHelpFormatter(HelpFormatter):
 					name_len = action.dest
 				col1 = names_len if names_len > col1 else col1
 
-		terminal_width, _ = terminalsize.get_terminal_size()
+		terminal_width, _ = get_terminal_size()
 		col2 = terminal_width - col1
 		
 		def format_help_lines(lines):
@@ -121,7 +121,7 @@ class CommandHelpFormatter(HelpFormatter):
 				usage += '%s '%p.dest
 
 		if self._extrahelp is not None:
-			help += os.linesep + docstring.trim(self._extrahelp)
+			help += os.linesep + trim_docstring(self._extrahelp)
 
 		usage += os.linesep + os.linesep
 		if help == '':
@@ -131,5 +131,5 @@ class CommandHelpFormatter(HelpFormatter):
 
 
 	def _format_text(self, text):
-		return docstring.trim(text) + os.linesep
+		return trim_docstring(text) + os.linesep
 

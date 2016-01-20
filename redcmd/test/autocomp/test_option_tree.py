@@ -5,6 +5,7 @@ from redcmd.autocomp.node import Node
 from redcmd.autocomp.filter import apply_filters
 from redcmd import CommandLine
 from redcmd.command_collection import CommandCollection
+from redcmd import const
 
 
 def sort_by_name(nodelist):
@@ -54,7 +55,7 @@ class TestOptionTree(TestCase):
 		from redcmd.test.autocomp import subcmd
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
-		cl.setup_autocomplete()
+		cl.setup_autocomplete(const.internal_dummy_cmdname)
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
 		ot = cl._command_collection._optiontree
