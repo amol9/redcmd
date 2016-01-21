@@ -6,7 +6,7 @@ from redlib.api.system import sys_command
 from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
 from .shell_script_installer_factory import get_shell_script_installer
-from ..datastore import DataStore
+from ..datastore import DataStore, DataStoreError
 
 
 class InstallError(Exception):
@@ -52,7 +52,15 @@ class Installer:
 
 	def remove_cmd(self, cmdname):
 		dstore = DataStore()
-		dstore.remove_optiontree(cmdname)
+
+		try:
+			dstore.remove_optiontree(cmdname, exc=True)
+		except DataStoreError as e:
+			if e.reason == DataStoreError.FILE_NOT_FOUND:
+				raise InstallError('%s is not setup for current user'%cmdname)
+			else:
+				raise InstallError(e)
+			
 
 		self._shell_script_installer.remove_cmd(cmdname)
 

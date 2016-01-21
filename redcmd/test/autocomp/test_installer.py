@@ -35,6 +35,13 @@ class TestInstaller(TestCase):
 				pass
 
 
+	def test_remove_non_existant_cmd(self):
+		installer = Installer()
+
+		with self.assertRaises(InstallError) as e:
+			installer.remove_cmd('gxafdsew323')
+
+
 if __name__ == '__main__':
 	TestInstaller.remove_files = False
 	ut_main()

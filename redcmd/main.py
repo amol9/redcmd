@@ -11,7 +11,6 @@ def main():
 	try:
 		commandline.execute()
 	except CommandLineError as e:
-		print(e)
 		sys.exit(1)
 
 	sys.exit(0)

@@ -19,7 +19,7 @@ data_dir		= None
 autocomp_dir		= None
 script_dir		= None
 root_data_dir		= joinpath('/var/local', data_dir_name)
-root_autocomp_dir	= joinpath('/var/local', data_dir_name)
+root_autocomp_dir	= joinpath('/var/local', data_dir_name, 'autocomp')
 
 if is_linux() and getuid() == 0:
 	data_dir		= root_data_dir

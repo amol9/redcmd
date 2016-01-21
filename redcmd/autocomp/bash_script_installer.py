@@ -3,7 +3,7 @@ from os.path import exists, join as joinpath, dirname
 from os import access, getuid, linesep, chmod, lstat, W_OK, remove
 
 from zope.interface import implementer
-from redlib.api.misc import TextFile
+from redlib.api.misc import TextFile, TextFileError
 from redlib.api.system import sys_command
 
 from .. import const
@@ -82,7 +82,7 @@ class BASHScriptInstaller:
 
 		count = tfile.find_lines(id)
 		if count > 1:
-			tfile.remove_line(id, count=count-1)
+			tfile.remove_lines(id, count=count-1)
 		elif count == 0:
 			tfile.append_line("source \"%s\""%self.user_script_file, id=self.id_prefix + 'user_script')
 
@@ -107,7 +107,7 @@ class BASHScriptInstaller:
 				raise ShellScriptInstallError(str(e))
 		
 		tfile = TextFile(self.user_bashrc_file)
-		tfile.remove_line(self.id_prefix + 'user_script')
+		tfile.remove_lines(self.id_prefix + 'user_script')
 
 		if getuid() != 0 and exists(self.profile_d_file):
 			print('Base script has been removed from %s, but not from %s.\n'%(self.user_bashrc_file, self.profile_d_dir) +
@@ -149,8 +149,8 @@ class BASHScriptInstaller:
 
 		try:
 			tfile = TextFile(self.user_cmdlist_file)
-			tfile.remove_line(self.id_prefix + cmdname)
-		except textfileError as e:
+			tfile.remove_lines(self.id_prefix + cmdname)
+		except TextFileError as e:
 			raise ShellScriptInstallerError(e)
 
 		print('autocomplete for %s removed'%cmdname)

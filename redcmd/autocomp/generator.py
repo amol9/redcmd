@@ -1,7 +1,7 @@
 import re
 
 from .filter import apply_filters
-from ..datastore import DataStore
+from ..datastore import DataStore, DataStoreError
 
 
 class GenError(Exception):
@@ -23,7 +23,10 @@ class Generator:
 	def load(self):
 		cmdname = self._cmdline.split()[0]
 		dstore = DataStore()
-		self._optiontree = dstore.load_optiontree(cmdname)
+		try:
+			self._optiontree = dstore.load_optiontree(cmdname)
+		except DataStoreError as e:
+			raise GenError(e)
 
 
 	def gen(self):
