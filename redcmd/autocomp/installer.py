@@ -7,6 +7,7 @@ from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
 from .shell_script_installer_factory import get_shell_script_installer
 from ..datastore import DataStore, DataStoreError
+from ..client.redcmd_internal_subcommand import RedcmdInternalSubcommand
 
 
 class InstallError(Exception):
@@ -33,7 +34,8 @@ class Installer:
 			cmdname = command_collection.prog
 
 			try:
-				command_collection.make_option_tree()
+				subcmd_cls = RedcmdInternalSubcommand if cmdname == 'redcmd' else None
+				command_collection.make_option_tree(subcmd_cls=subcmd_cls)
 			except CommandCollectionError as e:
 				raise InstallError(e)
 
@@ -43,7 +45,6 @@ class Installer:
 				raise InstallError(e)
 		else:
 			cmd = cmdname + ' ' + const.internal_subcmd + ' autocomp setup ' + const.internal_dummy_cmdname
-			print(cmd)
 			rc, op = sys_command(cmd)
 			print(op)
 			if rc != 0:

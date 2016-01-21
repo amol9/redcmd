@@ -65,7 +65,7 @@ class _CommandCollection:
 		return self._cmdparser.prog
 
 
-	def make_option_tree(self, command_name=None):
+	def make_option_tree(self, command_name=None, subcmd_cls=None):
 		command_name = self._cmdparser.prog if command_name is None else command_name
 
 		if command_name is None:
@@ -73,7 +73,7 @@ class _CommandCollection:
 
 		self._optiontree = OptionTree()
 		self._optiontree.add_node(Node(command_name))
-		self.add_commands()
+		self.add_commands(subcmd_cls=subcmd_cls)
 
 		dstore = DataStore()
 		dstore.save_optiontree(self._optiontree, command_name)

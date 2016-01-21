@@ -30,7 +30,7 @@ class AutocompSubSubcommands(AutocompSubcommand):
 				'Are you sure you want to continue?'
 
 		message = msg_template.format(command_name)
-
+		
 		if command_name == const.internal_dummy_cmdname or self.confirm(message):
 			self.exc_installer_method(Installer.setup_cmd, command_name)
 
