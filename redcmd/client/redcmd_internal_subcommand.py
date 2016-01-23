@@ -1,5 +1,5 @@
 
-from .. import subcmd
+from ..decorators import subcmd
 from ..subcommand import InternalSubcommand
 
 

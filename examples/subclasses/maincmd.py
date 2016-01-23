@@ -1,5 +1,5 @@
 
-from redcmd import CommandLine, CommandLineError, Maincommand, maincmd, CommandError, Arg
+from redcmd.api import CommandLine, CommandLineError, Maincommand, maincmd, CommandError, Arg
 
 
 class MyMainCommand(Maincommand):

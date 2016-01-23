@@ -1,5 +1,5 @@
 
-from redcmd import Subcommand, subcmd, Arg
+from redcmd.api import Subcommand, subcmd, Arg
 
 
 class MathSubcommand(Subcommand):

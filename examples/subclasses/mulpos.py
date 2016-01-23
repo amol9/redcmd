@@ -1,5 +1,5 @@
 
-from redcmd import CommandLine, Maincommand, maincmd
+from redcmd.api import CommandLine, Maincommand, maincmd
 
 
 class AddCommand(Maincommand):

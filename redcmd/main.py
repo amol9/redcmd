@@ -1,6 +1,7 @@
 import sys
 
-from . import CommandLine, CommandLineError
+from .commandline import CommandLine
+from .exc import CommandLineError
 from . import const
 from .version import __version__
 

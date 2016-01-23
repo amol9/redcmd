@@ -1,3 +1,5 @@
+__all__ = ['CommandError', 'CommandLineError']
+
 
 class CommandError(Exception):
 	pass

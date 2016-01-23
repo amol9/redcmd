@@ -50,6 +50,7 @@ class _CommandCollection:
 		self._cmdparser 		= CommandParser(formatter_class=CommandHelpFormatter)
 		self._internal_cmdparser 	= None
 		self._optiontree 		= None
+		self._to_hyphen			= False
 
 
 	def set_details(self, prog=None, description=None, version=None, _to_hyphen=False):

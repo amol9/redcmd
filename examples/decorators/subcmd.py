@@ -2,7 +2,7 @@ import os
 from time import time
 import platform as pf
 
-from redcmd import CommandLine, CommandLineError, subcmd, Arg
+from redcmd.api import CommandLine, CommandLineError, subcmd, Arg
 
 
 @subcmd

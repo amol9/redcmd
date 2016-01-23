@@ -1,7 +1,7 @@
 from unittest import TestCase, main as ut_main
 
 from redcmd.autocomp.generator import Generator, GenError
-from redcmd import CommandLine
+from redcmd.commandline import CommandLine
 
 
 class TestGenerator(TestCase):

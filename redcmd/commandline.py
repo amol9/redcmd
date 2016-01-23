@@ -1,11 +1,14 @@
 import sys
 
-from .exc import CommandCollectionError, CommandLineError
-from .command_collection import CommandCollection
 from . import const
 from .client.autocomp_subcommand import *
-from .client.redcmd_internal_subcommand import RedcmdInternalSubcommand
+from .command_collection import CommandCollection
 from .autocomp.installer import Installer, InstallError
+from .exc import CommandCollectionError, CommandLineError
+from .client.redcmd_internal_subcommand import RedcmdInternalSubcommand
+
+
+__all__ = ['CommandLine']
 
 
 class CommandLine(object):

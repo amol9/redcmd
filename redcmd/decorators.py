@@ -7,6 +7,9 @@ from .subcommand import Subcommand
 from . import const
 
 
+__all__ = ['subcmd', 'maincmd']
+
+
 def subcmd(func=None, parent=None):
 	def subcmd_dec(func):
 		if member_of_a_class(func): 

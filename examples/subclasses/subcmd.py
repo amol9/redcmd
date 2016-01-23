@@ -1,7 +1,7 @@
 import os
 from time import time
 
-from redcmd import CommandLine, CommandLineError, Subcommand, subcmd
+from redcmd.api import CommandLine, CommandLineError, Subcommand, subcmd
 
 
 class MathSubcommands(Subcommand):
@@ -49,7 +49,6 @@ class DisplaySubSubcommands(DisplaySubcommand):
 
 
 if __name__ == '__main__':
-	print('subcmd')
 	cmdline = CommandLine(prog='subcmd', description='A program to test subcommand addition using subclassing.',
 			version='1.0.0')
 	try:

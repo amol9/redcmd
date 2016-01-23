@@ -3,7 +3,7 @@ from unittest import TestCase, main as ut_main
 from redcmd.autocomp.option_tree import OptionTree, OptionTreeError
 from redcmd.autocomp.node import Node
 from redcmd.autocomp.filter import apply_filters
-from redcmd import CommandLine
+from redcmd.commandline import CommandLine
 from redcmd.command_collection import CommandCollection
 from redcmd import const
 
