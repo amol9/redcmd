@@ -112,7 +112,7 @@ class _CommandCollection:
 						continue
 
 					if self._optiontree is not None:
-						self._optiontree.add_node(Node(func.__name__, subcmd=True))
+						self._optiontree.add_node(Node(self.utoh(func.__name__), subcmd=True))
 
 					subcmd_parser = self.add_subcommand(
 								func,
@@ -283,8 +283,8 @@ class _CommandCollection:
 		if self._optiontree is None:
 			return
 
-		name = names[0]
-		alias = names[1] if len(names) > 1 else None
+		name = self.utoh(names[0])
+		alias = self.utoh(names[1]) if len(names) > 1 else None
 
 		filters = []
 		if choices is not None:

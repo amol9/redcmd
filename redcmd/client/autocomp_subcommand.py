@@ -33,7 +33,7 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		message = msg_template.format(command_name)
 		
 		if command_name == const.internal_dummy_cmdname or self.confirm(message):
-			self.exc_installer_method(Installer.setup_cmd, command_name)
+			self.exc_installer_method(Installer.setup_cmd_by_exe, command_name)
 
 
 	@subcmd
@@ -100,7 +100,6 @@ class AutocompSubSubcommands(AutocompSubcommand):
 			for option in options:
 				print(option)
 		except GenError as e:
-			print(e)
 			raise CommandError()
 
 

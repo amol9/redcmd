@@ -3,7 +3,6 @@ from unittest import TestCase, main as ut_main
 from redcmd.autocomp.option_tree import OptionTree, OptionTreeError
 from redcmd.autocomp.node import Node
 from redcmd.autocomp.filter import apply_filters
-from redcmd.commandline import CommandLine
 from redcmd.command_collection import CommandCollection
 from redcmd import const
 
@@ -54,12 +53,12 @@ class TestOptionTree(TestCase):
 	def test_subcmd_option_tree_creation(self):
 		from redcmd.test.autocomp import subcmd
 
-		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
-		cl.setup_autocomplete(const.internal_dummy_cmdname)
+		cc = CommandCollection()
+		cc.set_details(prog='subcmd', description='none', version='1.0.0', _to_hyphen=False)
+		cc.make_option_tree()
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
-		ot = cl._command_collection._optiontree
-		root = ot._root
+		root = cc._optiontree._root
 
 		self.assertEqual(root.name, 'subcmd')
 		self.assertIsNotNone(root.children)

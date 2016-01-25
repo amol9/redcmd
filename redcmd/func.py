@@ -4,20 +4,21 @@ from .autocomp.installer import Installer
 from . import const
 
 
-__all__ = ['setup_redcmd_autocomp']
+__all__ = ['setup_autocomp', 'remove_autocomp']
 
 
-def setup_redcmd_autocomp(commands_module, command_name=None):
-	if setup:
-		try:
-			import_module(commands_module)
-		except ImportError as e:
-			print(e)
+def setup_autocomp(commands_module, command_name=None, _to_hyphen=False):
+	try:
+		import_module(commands_module)
+	except ImportError as e:
+		print(e)
+		return
 
-		installer = Installer()	
-		installer.setup_cmd(const.internal_dummy_cmdname)
+	installer = Installer()	
+	installer.setup_cmd(command_name, _to_hyphen=_to_hyphen)
 
-	else:
-		installer = Installer()	
-		installer.remove_cmd(command_name)
+
+def remove_autocomp(command_name):
+	installer = Installer()	
+	installer.remove_cmd(command_name)
 

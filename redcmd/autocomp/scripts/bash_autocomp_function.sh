@@ -10,7 +10,12 @@ function _redcmd_autocomp_function()
 		comp_word=" $comp_word"
 	fi
 
-	COMPREPLY=($(redcmd autocomp gen "${comp_line}" "$comp_word"))
+	options=($(redcmd autocomp gen "${comp_line}" "$comp_word" 2>/dev/null))
+	
+	if [ $? -eq 0 ]
+	then
+		COMPREPLY=("${options[@]}")
+	fi
 }
 
 export -f _redcmd_autocomp_function

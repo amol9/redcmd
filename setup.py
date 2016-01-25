@@ -5,6 +5,8 @@ import platform
 import sys
 from setuptools import setup, find_packages
 
+from rc_setup import setup_autocomp
+
 #from redcmd.version import __version__
 
 entry_points = {}
@@ -19,7 +21,7 @@ setup(
 	url			= 'http://pypi.python.org/pypi/redcmd/',
 	packages		= find_packages(),
 	include_package_data	= True,
-	scripts			= ['ez_setup.py'],
+	scripts			= ['ez_setup.py', 'rc_setup.py'],
 	install_requires	= ['redlib>=1.0.5', 'zope.interface'],
 	entry_points		= entry_points,
 	classifiers		= [
@@ -33,4 +35,7 @@ setup(
 					'Topic :: Software Development :: Libraries :: Application Frameworks'
 				]
 )
+
+
+setup_autocomp('redcmd.client.all', 'redcmd', _to_hyphen=True)
 
