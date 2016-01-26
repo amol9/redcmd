@@ -1,4 +1,4 @@
-from unittest import TestCase, main as ut_main
+from unittest import TestCase, main as ut_main, skip
 
 from redcmd.autocomp.option_tree import OptionTree, OptionTreeError
 from redcmd.autocomp.node import Node
@@ -6,7 +6,6 @@ from redcmd.datastore import DataStore
 
 
 class TestDataStore(TestCase):
-
 
 	def test_save_load_optiontree(self):
 		ot = OptionTree()
@@ -34,6 +33,7 @@ class TestDataStore(TestCase):
 		self.assertEqual(root._name, 'root')
 
 
+	@skip('improve')
 	def test_list(self):
 		ds = DataStore()
 		commands = ds.list_optiontree()

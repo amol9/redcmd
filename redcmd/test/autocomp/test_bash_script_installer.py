@@ -1,4 +1,4 @@
-from unittest import TestCase, main as ut_main
+from unittest import TestCase, main as ut_main, skip
 import os
 import sys
 from shutil import copy, copytree, rmtree
@@ -18,6 +18,8 @@ from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 # the functions they test are rather trivial
 # -
 
+
+@skip
 class TestBASHScriptInstaller(TestCase):
 
 	test_home 	= './home'

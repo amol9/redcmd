@@ -1,10 +1,15 @@
 from unittest import TestCase, main as ut_main
 
-from redcmd.autocomp.generator import Generator, GenError
 from redcmd.commandline import CommandLine
+from redcmd.command_collection import CommandCollection
+from redcmd.autocomp.generator import Generator, GenError
 
 
 class TestGenerator(TestCase):
+
+	def tearDown(self):
+		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
+
 
 	def test_gen(self):
 		from redcmd.test.autocomp import subcmd

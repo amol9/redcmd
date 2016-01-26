@@ -1,4 +1,4 @@
-from unittest import TestCase, main as ut_main
+from unittest import TestCase, main as ut_main, skip
 import os
 from os.path import dirname, join as joinpath, exists
 from os import remove
@@ -7,6 +7,7 @@ from redcmd.autocomp.installer import Installer, InstallError
 from redcmd import const
 
 
+@skip
 class TestInstaller(TestCase):
 	remove_files = True
 	test_cmd = 'subcmd'
