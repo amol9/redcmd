@@ -7,14 +7,15 @@ from setuptools import setup, find_packages
 
 from rc_setup import setup_autocomp
 
-#from redcmd.version import __version__
+from redcmd.version import __version__
+
 
 entry_points = {}
 entry_points['console_scripts'] = ['redcmd=redcmd.main:main']
 
 setup(	
 	name			= 'redcmd',
-	version			= '1.0.2',
+	version			= __version__,
 	description		= 'A library to manage command line interface for an application.',
 	author			= 'Amol Umrale',
 	author_email 		= 'babaiscool@gmail.com',

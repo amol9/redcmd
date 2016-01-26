@@ -114,5 +114,5 @@ class DataStore:
 				else:
 					commands[f] = ['all']
 
-		return [k + ' [' + ', '.join(v) + ']' for k, v in commands.items()]
+		return commands
 
