@@ -11,12 +11,16 @@ class TestGenerator(TestCase):
 		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
 
 
-	def test_gen(self):
-		from redcmd.test.autocomp import subcmd
+	def import_test_gen(self, dec=False):
+		if not dec:
+			from redcmd.test.autocomp import subcmd
+			search_engines = subcmd.search_engines
+		else:
+			from redcmd.test.autocomp import subcmd_dec
+			search_engines = subcmd_dec.search_engines
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
-		cl._command_collection.make_option_tree()
-		ot = cl._command_collection._optiontree
+		ot = cl._command_collection.make_option_tree(save=False)
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
 
@@ -49,7 +53,7 @@ class TestGenerator(TestCase):
 
 
 		self.assertEqual(gen('subcmd search -e google', 'google'), ['google'])	
-		self.assertEqual(gen('subcmd search query -e', ''), sorted(subcmd.search_engines))	
+		self.assertEqual(gen('subcmd search query -e', ''), sorted(search_engines))	
 		self.assertEqual(gen('subcmd search query -e g', 'g'), ['google'])	
 		self.assertEqual(gen('subcmd search query -', '-'), ['--engine'])	
 		self.assertEqual(gen('subcmd search -e google query -', '-'), [])	
@@ -69,6 +73,14 @@ class TestGenerator(TestCase):
 		self.assertEqual(gen('subcmd db search something', ''), [])
 		self.assertEqual(gen('subcmd search_config -m 10 -', '-'), ['--engine'])
 		self.assertEqual(gen('subcmd search_config -m 10 -x', '-x'), [])
+
+
+	def test_subcls_subcmd(self):
+		self.import_test_gen(dec=False)
+
+
+	def test_dec_subcmd(self):
+		self.import_test_gen(dec=True)
 
 
 if __name__ == '__main__':

@@ -50,15 +50,20 @@ class TestOptionTree(TestCase):
 		self.assertEqual(l2[1].name, 'level2-2')
 
 
-	def test_subcmd_option_tree_creation(self):
-		from redcmd.test.autocomp import subcmd
+	def create_test_subcmd_ot(self, dec=False):
+		if not dec:
+			from redcmd.test.autocomp import subcmd
+			search_engines = subcmd.search_engines
+		else:
+			from redcmd.test.autocomp import subcmd_dec
+			search_engines = subcmd_dec.search_engines
 
 		cc = CommandCollection()
 		cc.set_details(prog='subcmd', description='none', version='1.0.0', _to_hyphen=False)
-		cc.make_option_tree()
+		ot = cc.make_option_tree(save=False)
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
-		root = cc._optiontree._root
+		root = ot._root
 
 		self.assertEqual(root.name, 'subcmd')
 		self.assertIsNotNone(root.children)
@@ -84,7 +89,7 @@ class TestOptionTree(TestCase):
 		self.assertEqual(search_args[0].alias, '--engine')
 
 		engine_choices = sorted(apply_filters('', search_args[0].filters))
-		self.assertEqual(engine_choices, sorted(subcmd.search_engines))
+		self.assertEqual(engine_choices, sorted(search_engines))
 
 		self.assertEqual(search_args[1].name, 'query')
 		
@@ -109,6 +114,13 @@ class TestOptionTree(TestCase):
 		clear = db_subsubs[1]
 		self.assertEqual([i.name for i in sorted(clear.children, key=key_node)], ['id'])
 
+
+	def test_subcls_subcmd(self):
+		self.create_test_subcmd_ot(dec=False)
+
+
+	def test_dec_subcmd(self):
+		self.create_test_subcmd_ot(dec=True)
 
 
 if __name__ == '__main__':

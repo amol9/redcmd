@@ -66,7 +66,7 @@ class _CommandCollection:
 		return self._cmdparser.prog
 
 
-	def make_option_tree(self, command_name=None, subcmd_cls=None):
+	def make_option_tree(self, command_name=None, subcmd_cls=None, save=True):
 		command_name = self._cmdparser.prog if command_name is None else command_name
 
 		if command_name is None:
@@ -74,10 +74,33 @@ class _CommandCollection:
 
 		self._optiontree = OptionTree()
 		self._optiontree.add_node(Node(command_name))
-		self.add_commands(subcmd_cls=subcmd_cls)
+
+		# if cmdparser is aleady populated, add from it
+		if self._cmdparser._subparsers is not None:
+			self.make_ot_from_cmdparser(self._cmdparser)
+		else:
+			self.add_commands(subcmd_cls=subcmd_cls)
+
+		if not save:
+			return self._optiontree
 
 		dstore = DataStore()
 		dstore.save_optiontree(self._optiontree, command_name)
+
+
+	def make_ot_from_cmdparser(self, parser):
+		for subcmd, subparser in parser._subparsers._group_actions[0]._name_parser_map.iteritems():
+			self._optiontree.add_node(Node(subcmd, subcmd=True))
+			if subparser._subparsers is None:
+				for action in subparser._actions:
+					if action.dest == 'help':
+						continue
+					names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
+					self.add_to_optiontree(names, action.default, action.choices)
+			else:
+				self.make_ot_from_cmdparser(subparser)
+			self._optiontree.pop()
+
 
 	
 	def add_commands(self, maincmd_cls=None, subcmd_cls=None):			# to be called from class CommandLine to add
@@ -199,6 +222,7 @@ class _CommandCollection:
 				formatter_class=self._cmdparser.formatter_class,
 				description=help.get('short', None))
 
+		setattr(parser, const.parser_func_attr, func)		# for creating option tree after arg parser has been created
 		self.add_args_to_parser(func, cmd_cls, parser)
 
 		return parser
@@ -289,7 +313,7 @@ class _CommandCollection:
 		filters = []
 		if choices is not None:
 			filters.append(ListFilter([str(c) for c in choices]))
-		elif default is not None:
+		elif default is not None and default != '==SUPRESS==':
 			filters.append(ListFilter([str(default)]))
 
 		self._optiontree.add_node(Node(name, alias=alias, filters=filters))

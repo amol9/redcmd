@@ -39,7 +39,7 @@ class CommandLine(object):
 		except CommandCollectionError as e:
 			raise CommandLineError('error creating command line structure')
 
-
+		#import pdb; pdb.set_trace()
 		if self._default_subcommand is not None and len(sys.argv) == 1 :
 			sys.argv.append(self._default_subcommand)
 

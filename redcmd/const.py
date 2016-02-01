@@ -6,6 +6,8 @@ from redlib.api.system import is_linux
 
 subcmd_attr 		= '__subcmd__'
 maincmd_attr 		= '__maincmd__'
+add_attr		= '__add__'
+parser_func_attr	= '__func__'
 subcmd_dest_suffix 	= 'subcommand'
 
 prog			= 'program'

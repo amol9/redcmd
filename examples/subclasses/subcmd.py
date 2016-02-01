@@ -6,13 +6,21 @@ from redcmd.api import CommandLine, CommandLineError, Subcommand, subcmd
 
 class MathSubcommands(Subcommand):
 
-	@subcmd
-	def add(self, a, b):
+	def args(self, a, b):
 		'''Add two numbers
 		a: first number
 		b: second number'''
 
-		print('sum: %d'%(int(a) + int(b)))
+		self.a = a
+		self.b = b
+
+	@subcmd(add=args)
+	def add(self):
+		'''Add two numbers
+		a: first number
+		b: second number'''
+
+		print('sum: %d'%(int(self.a) + int(self.b)))
 
 
 	@subcmd
