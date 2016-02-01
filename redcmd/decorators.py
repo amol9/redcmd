@@ -12,12 +12,12 @@ __all__ = ['subcmd', 'maincmd']
 
 def subcmd(func=None, add=None, parent=None):
 	def subcmd_dec(func):
+		if add is not None:
+			func.__dict__[const.add_attr] = add
+
 		if member_of_a_class(func): 
 			func.__dict__[const.subcmd_attr] = True
 			return func
-
-		if add is not None:
-			func.__dict__[const.add_attr] = add
 
 		command_collection = CommandCollection()
 		try:

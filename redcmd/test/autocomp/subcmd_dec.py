@@ -76,3 +76,15 @@ def instance(id):
 def total(a, b, c, floating_point=False):
 	pass
 
+
+def common(username='test'):
+	pass
+
+@subcmd(add=[common])
+def userpass():
+	pass
+
+@subcmd(add=[common])
+def userinfo():
+	pass
+

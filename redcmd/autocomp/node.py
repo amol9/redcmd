@@ -1,13 +1,13 @@
 
 class Node(object):
 
-	def __init__(self, name, alias=None, filters=None, subcmd=False, common=None):
+	def __init__(self, name, alias=None, filters=None, subcmd=False):
 		self._name 	= name
 		self._alias	= alias
 		self._children 	= None
 		self._filters	= filters
 		self._subcmd	= subcmd
-		self._common	= common
+		self._common	= []
 
 
 	def add_child(self, node):
@@ -27,14 +27,20 @@ class Node(object):
 		return self._alias
 
 
+	def add_common(self, node):
+		self._common.append(node)
+
+
 	def get_children(self):
-		common = None if self._common is None else self._common.children
 		all = []
+
+		for c in self._common:
+			if c.children is not None:
+				all.extend(c.children)
 
 		if self._children is not None:
 			all.extend(self._children)
-		if common is not None:
-			all.extend(common)
+
 		all = None if len(all) == 0 else all
 
 		return all

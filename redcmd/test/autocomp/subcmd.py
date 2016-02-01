@@ -85,3 +85,15 @@ class TotalSubcommand(Subcommand):
 	def total(self, a, b, c, floating_point=False):
 		pass
 
+
+class UserSubcommand(Subcommand):
+	def common(self, username='test'):
+		pass
+
+	@subcmd(add=[common])
+	def userpass(self):
+		pass
+	
+	@subcmd(add=[common])
+	def userinfo(self):
+		pass

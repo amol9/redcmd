@@ -62,7 +62,7 @@ class TestOptionTree(TestCase):
 		cc.set_details(prog='subcmd', description='none', version='1.0.0', _to_hyphen=False)
 		ot = cc.make_option_tree(save=False)
 
-		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
+		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total', 'userinfo', 'userpass']
 		root = ot._root
 
 		self.assertEqual(root.name, 'subcmd')
@@ -113,6 +113,17 @@ class TestOptionTree(TestCase):
 
 		clear = db_subsubs[1]
 		self.assertEqual([i.name for i in sorted(clear.children, key=key_node)], ['id'])
+
+		userinfo = sub[7]
+		userinfo_args = userinfo.children
+		self.assertEqual([(i.name, i.alias) for i in userinfo_args], [('-u', '--username')])
+		
+		userpass = sub[8]
+
+		self.assertEqual(len(userpass.children), 1)
+		userpass_args = userpass.children
+		self.assertEqual([(i.name, i.alias) for i in userpass_args], [('-u', '--username')])
+
 
 
 	def test_subcls_subcmd(self):

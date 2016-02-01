@@ -32,6 +32,13 @@ class OptionTree(object):
 
 		self.push(node)
 
+
+	def add_common(self, node):
+		if self._stack is None or len(self._stack) == 0:
+			raise OptionTreeError('option tree creation error: stack empty')
+
+		self._stack[-1].add_common(node)
+
 		
 	def push(self, node):
 		self._stack.append(node)

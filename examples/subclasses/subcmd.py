@@ -7,29 +7,40 @@ from redcmd.api import CommandLine, CommandLineError, Subcommand, subcmd
 class MathSubcommands(Subcommand):
 
 	def args(self, a, b):
-		'''Add two numbers
-		a: first number
+		'''a: first number
 		b: second number'''
 
 		self.a = a
 		self.b = b
 
-	@subcmd(add=args)
+
+	def more_args(self, c, d):
+		'''c: third number
+		d: fourth number'''
+
+		self.c = c
+		self.d = d
+
+
+	@subcmd(add=[args])
 	def add(self):
-		'''Add two numbers
-		a: first number
-		b: second number'''
+		'Add two numbers'
 
 		print('sum: %d'%(int(self.a) + int(self.b)))
 
 
-	@subcmd
-	def subtract(self, a, b):
-		'''Subtract two numbers
-		a: first number
-		b: second number'''
+	@subcmd(add=[args])
+	def subtract(self):
+		'Subtract two numbers'
 
-		print('diff: %d'%(int(a) - int(b)))
+		print('diff: %d'%(int(self.a) - int(self.b)))
+
+
+	@subcmd(add=[args, more_args])
+	def add4(self):
+		'Add 4 numbers.'
+
+		print('sum: %d'%(int(self.a) + int(self.b) + int(self.c) + int(self.d)))
 
 
 class DisplaySubcommand(Subcommand):

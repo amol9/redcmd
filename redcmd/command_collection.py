@@ -1,5 +1,5 @@
 import inspect
-from argparse import _SubParsersAction
+from argparse import _SubParsersAction, ArgumentParser
 
 from redlib.api.misc import Singleton, extract_help
 
@@ -51,6 +51,7 @@ class _CommandCollection:
 		self._internal_cmdparser 	= None
 		self._optiontree 		= None
 		self._to_hyphen			= False
+		self._add_arg_parsers		= {}
 
 
 	def set_details(self, prog=None, description=None, version=None, _to_hyphen=False):
@@ -214,23 +215,46 @@ class _CommandCollection:
 
 		if subcmd_name in spa._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
+
+		add_arg_funcs = getattr(func, const.add_attr, None)
+		add_arg_parsers = []
+		if add_arg_funcs is not None:
+			for arg_func in add_arg_funcs:
+				fname = arg_func.__name__
+				if fname in self._add_arg_parsers.keys():
+					add_arg_parsers.append(self._add_arg_parsers[fname])
+				else:
+					arg_parser = ArgumentParser(add_help=False)
+					self.add_args_to_parser(arg_func, cmd_cls, arg_parser, common=True)
+
+					add_arg_parsers.append(arg_parser)
+					self._add_arg_parsers[fname] = arg_parser
+
 		
 		help = extract_help(func)
 
 		parser = spa.add_parser(subcmd_name,			# add parser for subcommand
 				prog=self._cmdparser.prog + ' ' + func.__name__,
 				formatter_class=self._cmdparser.formatter_class,
-				description=help.get('short', None))
+				description=help.get('short', None),
+				parents=add_arg_parsers)
 
 		setattr(parser, const.parser_func_attr, func)		# for creating option tree after arg parser has been created
 		self.add_args_to_parser(func, cmd_cls, parser)
 
+		if self._optiontree is not None:
+			for ca in add_arg_parsers:
+				self._optiontree.add_common(ca.common_args)	
+
 		return parser
 			
 
-	def add_args_to_parser(self, func, cmd_cls, parser):		# extract function argument information
-		help = extract_help(func)				# and add them to parser,
-									# extract help and add it to parser
+	def add_args_to_parser(self, func, cmd_cls, parser, common=False):		# extract function argument information
+		help = extract_help(func)						# and add them to parser,
+											# extract help and add it to parser
+		if common:
+			parser.common_args = Node('')
+
 		argspec = inspect.getargspec(func)
 		if cmd_cls is not None:
 			del argspec.args[0]				# remove arg: self in case of a class method
@@ -292,7 +316,10 @@ class _CommandCollection:
 				names = [self.utoh(n) for n in names]
 
 			parser.add_argument(*names, **kwargs)
-			self.add_to_optiontree(names, default, choices)
+			if not common:
+				self.add_to_optiontree(names, default, choices)
+			else:
+				parser.common_args.add_child(self.make_ot_node(names, default, choices))
 		# end: for loop
 			
 		longhelp = help.get('long', None)	
@@ -300,13 +327,19 @@ class _CommandCollection:
 		if longhelp is not None and len(longhelp) > 0:
 			parser.set_extrahelp(longhelp)
 
-		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args))	# set class and function to be called for execution
+		add_arg_funcs = getattr(func, const.add_attr, None)
+		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args, add=add_arg_funcs))	# set class and function to be called for execution
 
 
 	def add_to_optiontree(self, names, default, choices):
 		if self._optiontree is None:
 			return
 
+		self._optiontree.add_node(self.make_ot_node(names, default, choices))
+		self._optiontree.pop()
+
+
+	def make_ot_node(self, names, default, choices):
 		name = self.utoh(names[0])
 		alias = self.utoh(names[1]) if len(names) > 1 else None
 
@@ -316,8 +349,8 @@ class _CommandCollection:
 		elif default is not None and default != '==SUPRESS==':
 			filters.append(ListFilter([str(default)]))
 
-		self._optiontree.add_node(Node(name, alias=alias, filters=filters))
-		self._optiontree.pop()
+		return Node(name, alias=alias, filters=filters)
+
 
 
 	def shorten_arg_name(self, arg_name, used):

@@ -22,7 +22,7 @@ class TestGenerator(TestCase):
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		ot = cl._command_collection.make_option_tree(save=False)
 
-		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total']
+		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total', 'userinfo', 'userpass']
 
 		def gen(cmdline, lastword):
 			gen = Generator(cmdline, lastword)
@@ -73,8 +73,16 @@ class TestGenerator(TestCase):
 		self.assertEqual(gen('subcmd db search something', ''), [])
 		self.assertEqual(gen('subcmd search_config -m 10 -', '-'), ['--engine'])
 		self.assertEqual(gen('subcmd search_config -m 10 -x', '-x'), [])
+		
+		self.assertEqual(gen('subcmd userinfo ', ''), ['--username'])
+		self.assertEqual(gen('subcmd userinfo -u ', ''), ['test'])
 
-
+		self.assertEqual(gen('subcmd userpass ', ''), ['--username'])
+		self.assertEqual(gen('subcmd userpass -u ', ''), ['test'])
+		self.assertEqual(gen('subcmd userpass --username ', ''), ['test'])
+		self.assertEqual(gen('subcmd userpass --username z', 'z'), [])
+	
+	
 	def test_subcls_subcmd(self):
 		self.import_test_gen(dec=False)
 
