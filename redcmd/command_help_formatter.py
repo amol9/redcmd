@@ -40,11 +40,11 @@ class CommandHelpFormatter(HelpFormatter):
 				col1 = names_len if names_len > col1 else col1
 			else:
 				positionals.append(action)
-				name_len = 0
+				names_len = 0
 				if action.__class__ == _SubParsersAction:
-					name_len = max([len(n) for n in action.choices.keys()])
+					names_len = max([len(n) for n in action.choices.keys()])
 				else:
-					name_len = action.dest
+					names_len = len(action.dest)
 				col1 = names_len if names_len > col1 else col1
 
 		terminal_width, _ = get_terminal_size()

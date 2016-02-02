@@ -67,7 +67,7 @@ class _CommandCollection:
 		return self._cmdparser.prog
 
 
-	def make_option_tree(self, command_name=None, subcmd_cls=None, save=True):
+	def make_option_tree(self, command_name=None, subcmd_cls=None, maincmd_cls=None, save=True):
 		command_name = self._cmdparser.prog if command_name is None else command_name
 
 		if command_name is None:
@@ -80,7 +80,7 @@ class _CommandCollection:
 		if self._cmdparser._subparsers is not None:
 			self.make_ot_from_cmdparser(self._cmdparser)
 		else:
-			self.add_commands(subcmd_cls=subcmd_cls)
+			self.add_commands(subcmd_cls=subcmd_cls, maincmd_cls=maincmd_cls)
 
 		if not save:
 			return self._optiontree
@@ -119,8 +119,9 @@ class _CommandCollection:
 
 	def add_subcommand_classes(self, cls, parser):
 		subcmd_added = False
-		for subcmd_cls in cls.__subclasses__():
-			subcmd_added |= self.add_subcommand_group(subcmd_cls, parser)
+		if getattr(cls, '__subclasses__', None) is not None:
+			for subcmd_cls in cls.__subclasses__():
+				subcmd_added |= self.add_subcommand_group(subcmd_cls, parser)
 		return subcmd_added
 
 
@@ -204,7 +205,9 @@ class _CommandCollection:
 
 		else:
 			spa = subparsers._group_actions[0]	
-	
+
+		#print 'spa class: ', spa.__class__
+		if spa.__class__ != _SubParsersAction: import pdb; pdb.set_trace()
 		return self.add_subcommand_to_spa(func, cmd_cls, spa)
 
 
@@ -216,21 +219,8 @@ class _CommandCollection:
 		if subcmd_name in spa._name_parser_map:
 			raise CommandCollectionError('duplicate subcommand: %s'%func.__name__)
 
-		add_arg_funcs = getattr(func, const.add_attr, None)
-		add_arg_parsers = []
-		if add_arg_funcs is not None:
-			for arg_func in add_arg_funcs:
-				fname = arg_func.__name__
-				if fname in self._add_arg_parsers.keys():
-					add_arg_parsers.append(self._add_arg_parsers[fname])
-				else:
-					arg_parser = ArgumentParser(add_help=False)
-					self.add_args_to_parser(arg_func, cmd_cls, arg_parser, common=True)
+		add_arg_parsers = self.get_add_parsers(func, cmd_cls)
 
-					add_arg_parsers.append(arg_parser)
-					self._add_arg_parsers[fname] = arg_parser
-
-		
 		help = extract_help(func)
 
 		parser = spa.add_parser(subcmd_name,			# add parser for subcommand
@@ -242,14 +232,38 @@ class _CommandCollection:
 		setattr(parser, const.parser_func_attr, func)		# for creating option tree after arg parser has been created
 		self.add_args_to_parser(func, cmd_cls, parser)
 
-		if self._optiontree is not None:
-			for ca in add_arg_parsers:
-				self._optiontree.add_common(ca.common_args)	
 
 		return parser
-			
 
-	def add_args_to_parser(self, func, cmd_cls, parser, common=False):		# extract function argument information
+
+	def get_add_parsers(self, func, cmd_cls, main=False):
+		add_arg_funcs = getattr(func, const.add_attr, None)
+		add_arg_parsers = []
+		usn = ['h']
+		if main:
+			usn.append('v')
+
+		if add_arg_funcs is not None:
+			for arg_func in add_arg_funcs:
+				fname = arg_func.__name__
+				if fname in self._add_arg_parsers.keys():
+					arg_parser = self._add_arg_parsers[fname]
+					add_arg_parsers.append(arg_parser)
+				else:
+					arg_parser = ArgumentParser(add_help=False)
+					self.add_args_to_parser(arg_func, cmd_cls, arg_parser, common=True, usn=usn)
+
+					add_arg_parsers.append(arg_parser)
+					self._add_arg_parsers[fname] = arg_parser
+
+				if self._optiontree is not None:
+					self._optiontree.add_common(arg_parser.common_args)	
+
+		return add_arg_parsers
+
+
+
+	def add_args_to_parser(self, func, cmd_cls, parser, common=False, usn=['h']):	# extract function argument information
 		help = extract_help(func)						# and add them to parser,
 											# extract help and add it to parser
 		if common:
@@ -264,7 +278,7 @@ class _CommandCollection:
 		else:
 			defaults_offset = len(argspec.args)
 
-		used_short_names = []					# store used short names for arguments so as not to repeat them
+		used_short_names = list(usn)					# store used short names for arguments so as not to repeat them
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
@@ -282,7 +296,7 @@ class _CommandCollection:
 					default = arg_default.default
 					nargs 	= arg_default.nargs
 
-					if (default is None and not arg_default.opt) or arg_default.pos:
+					if default is None or arg_default.pos:
 						names = [arg]		# positional argument
 				else:
 					if type(arg_default) == bool:
@@ -327,8 +341,9 @@ class _CommandCollection:
 		if longhelp is not None and len(longhelp) > 0:
 			parser.set_extrahelp(longhelp)
 
-		add_arg_funcs = getattr(func, const.add_attr, None)
-		parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args, add=add_arg_funcs))	# set class and function to be called for execution
+		if not common:
+			add_arg_funcs = getattr(func, const.add_attr, None)
+			parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args, add=add_arg_funcs))	# set class and function to be called for execution
 
 
 	def add_to_optiontree(self, names, default, choices):
@@ -371,8 +386,11 @@ class _CommandCollection:
 			return name
 			
 
-	def add_maincommand_class(self, cls):		# find a subclass of Maincommand, find any method decorated by @maincmd
-		subclasses = cls.__subclasses__()	# and add it as main command
+	def add_maincommand_class(self, cls):				# find a subclass of Maincommand, find any method decorated by @maincmd
+		if getattr(cls, '__subclasses__', None) is None:	# and add it as main command
+			return
+
+		subclasses = cls.__subclasses__()
 
 		if len(subclasses) > 1:
 			raise MainCommandError('only one class should derive from MainCommand')
@@ -380,6 +398,7 @@ class _CommandCollection:
 			return		# it's ok, main command may have been added via decorator or not added at all
 
 		maincmd_cls = subclasses[0]
+		maincmd_added = False
 
 		for member_name, member_val in inspect.getmembers(maincmd_cls, predicate=\
 			lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
@@ -387,6 +406,9 @@ class _CommandCollection:
 			func = member_val
 			if getattr(func, const.maincmd_attr, None) is not None:
 				self.add_maincommand(func, cmd_cls=maincmd_cls)
+				maincmd_added = True
+
+		return maincmd_added
 
 
 	def add_maincommand(self, func, cmd_cls=None):		# add func as main command, if cmd_cls = None, func is a non-member
@@ -396,7 +418,11 @@ class _CommandCollection:
 		if self._cmdparser.get_default('cmd_func') is not None:
 			raise CommandCollectionError('main command already added')
 
-		self.add_args_to_parser(func, cmd_cls, self._cmdparser)
+		add_arg_parsers = self.get_add_parsers(func, cmd_cls, main=True)
+		for p in add_arg_parsers:
+			self._cmdparser._add_container_actions(p)
+
+		self.add_args_to_parser(func, cmd_cls, self._cmdparser, usn=['h', 'v'])
 
 
 	def execute(self, args, namespace, internal=False):	# to be called for execution of command line

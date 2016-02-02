@@ -43,17 +43,27 @@ def member_of_a_class(func):
 	return argspec.args[0] == 'self'
 
 
-def maincmd(func):
-	if member_of_a_class(func):
-		func.__dict__[const.maincmd_attr] = True
+def maincmd(func=None, add=None):
+	def maincmd_dec(func):
+		if add is not None:
+			func.__dict__[const.add_attr] = add
+
+		if member_of_a_class(func):
+			func.__dict__[const.maincmd_attr] = True
+			return func
+
+		command_collection = CommandCollection()
+		try:
+			command_collection.add_maincommand(func)
+		except (MaincommandError, CommandCollectionError) as e:
+			print(e)
+			raise CommandLineError('error creating command line structure')
+
 		return func
 
-	command_collection = CommandCollection()
-	try:
-		command_collection.add_maincommand(func)
-	except (MaincommandError, CommandCollectionError) as e:
-		print(e)
-		raise CommandLineError('error creating command line structure')
 
-	return func
+	if func is None:
+		return maincmd_dec
+	else:
+		return maincmd_dec(func)
 	

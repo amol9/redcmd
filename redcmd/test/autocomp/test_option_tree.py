@@ -12,6 +12,12 @@ def sort_by_name(nodelist):
 
 
 class TestOptionTree(TestCase):
+	class DummySubcommand:
+		pass
+
+	class DummyMaincommand:
+		pass
+
 
 	def tearDown(self):
 		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
@@ -50,17 +56,17 @@ class TestOptionTree(TestCase):
 		self.assertEqual(l2[1].name, 'level2-2')
 
 
-	def create_test_subcmd_ot(self, dec=False):
-		if not dec:
-			from redcmd.test.autocomp import subcmd
-			search_engines = subcmd.search_engines
+	def create_test_subcmd_ot(self, d=False):
+		if not d:
+			from redcmd.test.autocomp import subcmd_s
+			search_engines = subcmd_s.search_engines
 		else:
-			from redcmd.test.autocomp import subcmd_dec
-			search_engines = subcmd_dec.search_engines
+			from redcmd.test.autocomp import subcmd_d
+			search_engines = subcmd_d.search_engines
 
 		cc = CommandCollection()
 		cc.set_details(prog='subcmd', description='none', version='1.0.0', _to_hyphen=False)
-		ot = cc.make_option_tree(save=False)
+		ot = cc.make_option_tree(save=False, maincmd_cls=self.DummyMaincommand)
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total', 'userinfo', 'userpass']
 		root = ot._root
@@ -127,11 +133,44 @@ class TestOptionTree(TestCase):
 
 
 	def test_subcls_subcmd(self):
-		self.create_test_subcmd_ot(dec=False)
+		self.create_test_subcmd_ot(d=False)
 
 
-	def test_dec_subcmd(self):
-		self.create_test_subcmd_ot(dec=True)
+	def test_decorator_subcmd(self):
+		self.create_test_subcmd_ot(d=True)
+
+
+	def create_test_maincmd_ot(self, d=False):
+		if not d:
+			from redcmd.test.autocomp import maincmd_s
+		else:
+			from redcmd.test.autocomp import maincmd_d
+
+		cc = CommandCollection()
+		cc.set_details(prog='maincmd', description='none', version='1.0.0', _to_hyphen=False)
+		ot = cc.make_option_tree(save=False, subcmd_cls=self.DummySubcommand)
+
+		root = ot._root
+
+		self.assertEqual(root.name, 'maincmd')
+		self.assertIsNotNone(root.children)
+
+		args = sorted(['--headers', '--user_agent', '--cookie_file', '--output_file', '--verbose_level', 'url'])
+		
+		key = lambda n : n.name if n.alias is None else n.alias
+		args_found = sorted(root.children, key=key)
+
+		self.assertEqual(args, [key(n) for n in args_found])
+		
+	
+	def test_subcls_maincmd(self):
+		self.create_test_maincmd_ot(d=False)
+
+
+	def stest_decorator_maincmd(self):
+		self.create_test_maincmd_ot(d=True)
+
+
 
 
 if __name__ == '__main__':

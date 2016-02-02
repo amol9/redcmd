@@ -25,7 +25,7 @@ class CmdFunc:
 
 		arg_list = [getattr(args, name) for name in self.arg_names]
 		if self.cmd_cls is not None:
-			self.func(cmd_cls_instance, *arg_list)
+			r = self.func(cmd_cls_instance, *arg_list)
 		else:
-			self.func(*arg_list)
+			r = self.func(*arg_list)
 
