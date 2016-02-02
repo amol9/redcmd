@@ -1,5 +1,5 @@
 import inspect
-from argparse import _SubParsersAction, ArgumentParser
+from argparse import _SubParsersAction, ArgumentParser, _VersionAction, _HelpAction
 
 from redlib.api.misc import Singleton, extract_help
 
@@ -44,6 +44,9 @@ from .datastore import DataStore
 # CommandCollection is the singleton that wraps a single instance of _CommandCollection.
 
 
+added_arg = lambda x : x.__class__ != _HelpAction and x.__class__ != _VersionAction
+
+
 class _CommandCollection:
 
 	def __init__(self):
@@ -77,7 +80,7 @@ class _CommandCollection:
 		self._optiontree.add_node(Node(command_name))
 
 		# if cmdparser is aleady populated, add from it
-		if self._cmdparser._subparsers is not None:
+		if self._cmdparser._subparsers is not None or any([added_arg(a) for a in self._cmdparser._actions]):
 			self.make_ot_from_cmdparser(self._cmdparser)
 		else:
 			self.add_commands(subcmd_cls=subcmd_cls, maincmd_cls=maincmd_cls)
@@ -90,17 +93,25 @@ class _CommandCollection:
 
 
 	def make_ot_from_cmdparser(self, parser):
-		for subcmd, subparser in parser._subparsers._group_actions[0]._name_parser_map.iteritems():
-			self._optiontree.add_node(Node(subcmd, subcmd=True))
-			if subparser._subparsers is None:
-				for action in subparser._actions:
-					if action.dest == 'help':
-						continue
+		if parser._subparsers is not None:
+			for subcmd, subparser in parser._subparsers._group_actions[0]._name_parser_map.iteritems():
+				self._optiontree.add_node(Node(subcmd, subcmd=True))
+				if subparser._subparsers is None:
+					for action in subparser._actions:
+						if action.dest == 'help':
+							continue
+						names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
+						self.add_to_optiontree(names, action.default, action.choices)
+				else:
+					self.make_ot_from_cmdparser(subparser)
+				self._optiontree.pop()
+
+		else:
+			for action in parser._actions:
+				if added_arg(action):
 					names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
 					self.add_to_optiontree(names, action.default, action.choices)
-			else:
-				self.make_ot_from_cmdparser(subparser)
-			self._optiontree.pop()
+
 
 
 	

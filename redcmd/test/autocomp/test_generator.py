@@ -4,6 +4,8 @@ from redcmd.commandline import CommandLine
 from redcmd.command_collection import CommandCollection
 from redcmd.autocomp.generator import Generator, GenError
 
+from redcmd.test.autocomp.dummy import DummyMaincommand, DummySubcommand
+
 
 class TestGenerator(TestCase):
 
@@ -11,8 +13,8 @@ class TestGenerator(TestCase):
 		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
 
 
-	def import_test_gen(self, dec=False):
-		if not dec:
+	def import_test_gen(self, d=False):
+		if not d:
 			from redcmd.test.autocomp import subcmd
 			search_engines = subcmd.search_engines
 		else:
@@ -20,7 +22,7 @@ class TestGenerator(TestCase):
 			search_engines = subcmd_dec.search_engines
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
-		ot = cl._command_collection.make_option_tree(save=False)
+		ot = cl._command_collection.make_option_tree(save=False, maincmd_cls=DummyMaincommand)
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total', 'userinfo', 'userpass']
 
@@ -84,11 +86,40 @@ class TestGenerator(TestCase):
 	
 	
 	def test_subcls_subcmd(self):
-		self.import_test_gen(dec=False)
+		self.import_test_gen(d=False)
 
 
-	def test_dec_subcmd(self):
-		self.import_test_gen(dec=True)
+	def test_decorator_subcmd(self):
+		self.import_test_gen(d=True)
+
+
+	def import_test_maincmd_gen(self, d=False):
+		if not d:
+			from redcmd.test.autocomp import maincmd_s
+		else:
+			from redcmd.test.autocomp import maincmd_d
+
+		cl = CommandLine(prog='maincmd', description='none', version='1.0.0')
+		ot = cl._command_collection.make_option_tree(save=False, subcmd_cls=DummySubcommand)
+
+		def gen(cmdline, lastword):
+			gen = Generator(cmdline, lastword)
+			gen._optiontree = ot
+			return gen.gen()
+		
+		self.assertEqual(gen('maincmd', ''), [])
+		self.assertEqual(gen('maincmd some_url --u', '--u'), ['--user_agent'])
+		self.assertEqual(gen('maincmd some_url -u Firefox --h', '--h'), ['--headers'])
+		self.assertEqual(gen('maincmd some_url -u Firefox -x', '-x'), [])
+		self.assertEqual(gen('maincmd some_url -h', '-h'), ['-he'])
+
+
+	def test_subcls_maincmd(self):
+		self.import_test_maincmd_gen(d=False)
+
+
+	def test_decorator_maincmd(self):
+		self.import_test_maincmd_gen(d=True)
 
 
 if __name__ == '__main__':

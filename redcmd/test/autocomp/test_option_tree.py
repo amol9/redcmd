@@ -6,18 +6,14 @@ from redcmd.autocomp.filter import apply_filters
 from redcmd.command_collection import CommandCollection
 from redcmd import const
 
+from redcmd.test.autocomp.dummy import DummyMaincommand, DummySubcommand
+
 
 def sort_by_name(nodelist):
 	return sorted(nodelist, cmp=lambda x, y : cmp(x.name, y.name))
 
 
 class TestOptionTree(TestCase):
-	class DummySubcommand:
-		pass
-
-	class DummyMaincommand:
-		pass
-
 
 	def tearDown(self):
 		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
@@ -66,7 +62,7 @@ class TestOptionTree(TestCase):
 
 		cc = CommandCollection()
 		cc.set_details(prog='subcmd', description='none', version='1.0.0', _to_hyphen=False)
-		ot = cc.make_option_tree(save=False, maincmd_cls=self.DummyMaincommand)
+		ot = cc.make_option_tree(save=False, maincmd_cls=DummyMaincommand)
 
 		subcmd_names = ['db', 'display', 'math', 'search', 'search_config', 'set_engine', 'total', 'userinfo', 'userpass']
 		root = ot._root
@@ -148,10 +144,10 @@ class TestOptionTree(TestCase):
 
 		cc = CommandCollection()
 		cc.set_details(prog='maincmd', description='none', version='1.0.0', _to_hyphen=False)
-		ot = cc.make_option_tree(save=False, subcmd_cls=self.DummySubcommand)
+		ot = cc.make_option_tree(save=False, subcmd_cls=DummySubcommand)
 
 		root = ot._root
-
+		#import pdb; pdb.set_trace()
 		self.assertEqual(root.name, 'maincmd')
 		self.assertIsNotNone(root.children)
 
@@ -167,7 +163,7 @@ class TestOptionTree(TestCase):
 		self.create_test_maincmd_ot(d=False)
 
 
-	def stest_decorator_maincmd(self):
+	def test_decorator_maincmd(self):
 		self.create_test_maincmd_ot(d=True)
 
 
