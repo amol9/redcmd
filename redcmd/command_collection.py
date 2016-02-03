@@ -354,7 +354,7 @@ class _CommandCollection:
 
 		if not common:
 			add_arg_funcs = getattr(func, const.add_attr, None)
-			parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, argspec.args, add=add_arg_funcs))	# set class and function to be called for execution
+			parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, add=add_arg_funcs))	# set class and function to be called for execution
 
 
 	def add_to_optiontree(self, names, default, choices):
