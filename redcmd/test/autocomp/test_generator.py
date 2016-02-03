@@ -15,11 +15,11 @@ class TestGenerator(TestCase):
 
 	def import_test_gen(self, d=False):
 		if not d:
-			from redcmd.test.autocomp import subcmd
-			search_engines = subcmd.search_engines
+			from redcmd.test.autocomp import subcmd_s
+			search_engines = subcmd_s.search_engines
 		else:
-			from redcmd.test.autocomp import subcmd_dec
-			search_engines = subcmd_dec.search_engines
+			from redcmd.test.autocomp import subcmd_d
+			search_engines = subcmd_d.search_engines
 
 		cl = CommandLine(prog='subcmd', description='none', version='1.0.0')
 		ot = cl._command_collection.make_option_tree(save=False, maincmd_cls=DummyMaincommand)

@@ -94,7 +94,7 @@ class _CommandCollection:
 
 	def make_ot_from_cmdparser(self, parser):
 		if parser._subparsers is not None:
-			for subcmd, subparser in parser._subparsers._group_actions[0]._name_parser_map.iteritems():
+			for subcmd, subparser in parser._subparsers._group_actions[0]._name_parser_map.items():
 				self._optiontree.add_node(Node(subcmd, subcmd=True))
 				if subparser._subparsers is None:
 					for action in subparser._actions:

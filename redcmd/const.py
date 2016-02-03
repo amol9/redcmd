@@ -38,3 +38,5 @@ prog_name		= 'redcmd'
 
 autocomp_function	= '__redcmd_autocomp'
 
+commandline_exc_exit_code = 1
+

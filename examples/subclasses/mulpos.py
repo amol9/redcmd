@@ -1,22 +1,38 @@
 
-from redcmd.api import CommandLine, Maincommand, maincmd
+from redcmd.api import Maincommand, maincmd, commandline_execute
 
 
 class AddCommand(Maincommand):
 
-	@maincmd
-	def add(self, a, b, c, floating_point=False):
+	def common(self, a, b, msg=None):
+		'''
+		msg: 	message to be printed
+		a: 	first number
+		b: 	second number
+		'''
+
+		self.a = a
+		self.b = b
+		self.msg = msg
+
+
+	@maincmd(add=[common])
+	def add(self, c, d, floating_point=False):
 		'''Add numbers.
 
-		floating_point: Perform a floating point addition.'''
+		c: 		third number
+		d: 		fourth number
+		floating_point: perform a floating point addition.'''
+
+		if self.msg is not None:
+			print(self.msg)
 
 		if not floating_point:
-			print(int(a) + int(b) + int(c))
+			print(int(self.a) + int(self.b) + int(c) + int(d))
 		else:
-			print(float(a) + float(b) + float(c))
+			print(float(self.a) + float(self.b) + float(c) + float(d))
 
 
 if __name__ == '__main__':
-	cl = CommandLine(_to_hyphen=True)
-	cl.execute()
+	commandline_execute(prog='test', description='add four numbers')
 
