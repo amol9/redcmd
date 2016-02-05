@@ -5,7 +5,7 @@ from redlib.api.misc import Singleton, extract_help
 
 from .command_help_formatter import CommandHelpFormatter
 from .commandparser import CommandParser
-from .arg import Arg
+from .arg import Arg, make_filter
 from .cmdfunc import CmdFunc
 from .maincommand import Maincommand
 from .subcommand import Subcommand, InternalSubcommand
@@ -101,7 +101,8 @@ class _CommandCollection:
 						if action.dest == 'help':
 							continue
 						names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
-						self.add_to_optiontree(names, action.default, action.choices)
+						filter = getattr(action, const.action_filter_attr, None)
+						self.add_to_optiontree(names, action.default, action.choices, filter)
 				else:
 					self.make_ot_from_cmdparser(subparser)
 				self._optiontree.pop()
@@ -110,7 +111,8 @@ class _CommandCollection:
 			for action in parser._actions:
 				if added_arg(action):
 					names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
-					self.add_to_optiontree(names, action.default, action.choices)
+					filter = getattr(action, const.action_filter_attr, None)
+					self.add_to_optiontree(names, action.default, action.choices, filter)
 
 
 
@@ -293,7 +295,7 @@ class _CommandCollection:
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
-			default = names = choices = nargs = action = None	
+			default = names = choices = nargs = action = filter = None	
 
 			if arg_index >= defaults_offset:		# argument has a default value
 				arg_default = argspec.defaults[arg_index - defaults_offset]
@@ -302,13 +304,19 @@ class _CommandCollection:
 
 				names = ['-' + short, '--' + arg]
 
-				if arg_default.__class__ == Arg:
+				if arg_default.__class__ == Arg or issubclass(arg_default.__class__, Arg):
+					filter 	= make_filter(arg_default)
 					choices = arg_default.choices
 					default = arg_default.default
 					nargs 	= arg_default.nargs
 
-					if default is None or arg_default.pos:
-						names = [arg]		# positional argument
+					if arg_default.pos:
+						if default is not None:
+							nargs = '?'
+						names = [arg]
+
+					#if default is None or arg_default.pos:
+					#	names = [arg]		# positional argument
 				else:
 					if type(arg_default) == bool:
 						if arg_default:
@@ -340,11 +348,13 @@ class _CommandCollection:
 			else:
 				names = [self.utoh(n) for n in names]
 
-			parser.add_argument(*names, **kwargs)
+			action = parser.add_argument(*names, **kwargs)
+			setattr(action, const.action_filter_attr, filter)
+
 			if not common:
-				self.add_to_optiontree(names, default, choices)
+				self.add_to_optiontree(names, default, choices, filter)
 			else:
-				parser.common_args.add_child(self.make_ot_node(names, default, choices))
+				parser.common_args.add_child(self.make_ot_node(names, default, choices, filter))
 		# end: for loop
 			
 		longhelp = help.get('long', None)	
@@ -357,26 +367,29 @@ class _CommandCollection:
 			parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, add=add_arg_funcs))	# set class and function to be called for execution
 
 
-	def add_to_optiontree(self, names, default, choices):
+	def add_to_optiontree(self, names, default, choices, filter):
 		if self._optiontree is None:
 			return
 
-		self._optiontree.add_node(self.make_ot_node(names, default, choices))
+		self._optiontree.add_node(self.make_ot_node(names, default, choices, filter))
 		self._optiontree.pop()
 
 
-	def make_ot_node(self, names, default, choices):
+	def make_ot_node(self, names, default, choices, filter):
 		name = self.utoh(names[0])
 		alias = self.utoh(names[1]) if len(names) > 1 else None
 
 		filters = []
+		if filter is not None:
+			filters.append(filter)
+
 		if choices is not None:
 			filters.append(ListFilter([str(c) for c in choices]))
+
 		elif default is not None and default != '==SUPRESS==':
 			filters.append(ListFilter([str(default)]))
 
 		return Node(name, alias=alias, filters=filters)
-
 
 
 	def shorten_arg_name(self, arg_name, used):

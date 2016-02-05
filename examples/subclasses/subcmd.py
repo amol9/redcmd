@@ -1,7 +1,9 @@
 import os
 from time import time
+import glob
+from os.path import basename
 
-from redcmd.api import CommandLine, CommandLineError, Subcommand, subcmd
+from redcmd.api import CommandLine, CommandLineError, Subcommand, subcmd, PathArg
 
 
 class MathSubcommands(Subcommand):
@@ -65,6 +67,24 @@ class DisplaySubSubcommands(DisplaySubcommand):
 		'Print logged in user\'s name.'
 
 		print(os.getlogin())
+
+
+class DirSubcommand(Subcommand):
+
+	@subcmd
+	def ls(self, dirpath=PathArg()):
+		'ls the dirpath.'
+
+		for p in glob.glob(dirpath + os.sep + '*'):
+			print(basename(p))
+
+
+	@subcmd
+	def cat(self, filepath=PathArg(ext_list=['txt'])):
+		'cat the file.'
+
+		with open(filepath, 'r') as f:
+			print(f.read())
 
 
 if __name__ == '__main__':

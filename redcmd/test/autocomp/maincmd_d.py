@@ -1,12 +1,12 @@
 
-from redcmd.api import maincmd, Arg
+from redcmd.api import maincmd, Arg, PathArg
 
 
 class args:
 	pass
 
 
-def options(headers=None, user_agent=None, cookie_file=None):
+def options(headers=None, user_agent=None, cookie_file=PathArg(opt=True, ext_list=['txt'])):
 	args.headers 		= headers
 	args.user_agent 	= user_agent
 	args.cookie_file 	= cookie_file

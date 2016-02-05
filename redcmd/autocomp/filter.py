@@ -1,3 +1,7 @@
+import re
+import glob
+from os import sep
+from os.path import dirname, basename, expanduser
 from zope.interface import Interface, Attribute, implementer
 
 
@@ -19,16 +23,72 @@ class RegexFilter:
 
 
 @implementer(IFilter)
-class GlobFilter:
+class PathFilter:
 
-	def __init__(self, patterns):
-		self._patterns = patterns
+	def __init__(self, ext_list=[], regex_list=[], glob_list=[], path_arg_obj=None):
+		if path_arg_obj is not None:
+			self.ext_list 	= path_arg_obj.ext_list
+			self.regex_list	= path_arg_obj.regex_list
+			self.glob_list	= path_arg_obj.glob_list
+		else:
+			self.ext_list	= ext_list
+			self.regex_list	= regex_list
+			self.glob_list	= glob_list
+
 
 	def match(self, name):
-		# get current dir contents
-		# apply all globs
-		# return those that match any of the globs
-		pass
+		dirpath = expanduser(dirname(name))
+		if dirpath == '':
+			dirpath = '.'
+
+		if not any([len(i) > 0 for i in [self.ext_list, self.regex_list, self.glob_list]]):
+			self.glob_list.append('*')		# no filters, return all
+
+		ext_matches = []
+		for e in self.ext_list:
+			ext_matches.extend(self.glob(dirpath + sep + '*.' + e))
+
+		glob_matches = []
+		for p in self.glob_list:
+			glob_matches.extend(self.glob(dirpath + sep + p))
+
+		regex_matches = []
+		if len(self.regex_list) > 0:
+			allf = self.glob(dirpath + sep + '*')
+			for r in self.regex_list:
+				cr = re.compile(r)
+				for p in allf:
+					if cr.match(basename(p)) is not None:
+						regex_matches.append(p)
+		
+		nodups = list(set(ext_matches + glob_matches + regex_matches))
+
+		prefix = basename(name)
+		if prefix != '':
+			lf = ListFilter(nodups)
+			return lf.match(prefix)
+		else:
+			return nodups
+
+
+	def glob(self, path):
+		return [basename(p) for p in glob.glob(path)]
+
+
+	def __getstate__(self):
+		return [self.ext_list, self.regex_list, self.glob_list]
+
+
+	def __setstate__(self, data):
+		self.ext_list 	= data[0]
+		self.regex_list	= data[1]
+		self.glob_list	= data[2]
+
+
+	def __del__(self):
+		del self.ext_list[:]
+		del self.regex_list[:]
+		del self.glob_list[:]
 
 
 @implementer(IFilter)

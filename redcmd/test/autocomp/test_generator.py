@@ -1,13 +1,29 @@
 from unittest import TestCase, main as ut_main
+from fnmatch import fnmatch
+from os.path import basename
 
 from redcmd.commandline import CommandLine
 from redcmd.command_collection import CommandCollection
 from redcmd.autocomp.generator import Generator, GenError
+from redcmd.autocomp.filter import PathFilter
 
 from redcmd.test.autocomp.dummy import DummyMaincommand, DummySubcommand
 
 
 class TestGenerator(TestCase):
+	flist = ['a.txt', 'b.txt', 'one.html', 'lib', 'bin', 'readme', 'INSTALL', 'notes.txt']
+
+	@classmethod
+	def setUpClass(cls):
+		cls.saved_PathFilter_glob = PathFilter.glob
+		mock_glob = lambda s, p : [f for f in cls.flist if fnmatch(f, basename(p))]
+		PathFilter.glob = mock_glob
+
+
+	@classmethod
+	def tearDownClass(cls):
+		PathFilter.glob = cls.saved_PathFilter_glob
+
 
 	def tearDown(self):
 		CommandCollection().instance_map.pop(CommandCollection.classtype, None)	# remove singleton
@@ -112,6 +128,10 @@ class TestGenerator(TestCase):
 		self.assertEqual(gen('maincmd some_url -u Firefox --h', '--h'), ['--headers'])
 		self.assertEqual(gen('maincmd some_url -u Firefox -x', '-x'), [])
 		self.assertEqual(gen('maincmd some_url -h', '-h'), ['-he'])
+
+		self.assertEqual(gen('maincmd some_url -c ', ''), [f for f in self.flist if f.endswith('.txt')])
+		self.assertEqual(gen('maincmd some_url -c a', 'a'), ['a.txt'])
+		self.assertEqual(gen('maincmd some_url -c /home/user/a', '/home/user/a'), ['a.txt'])
 
 
 	def test_subcls_maincmd(self):

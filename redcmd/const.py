@@ -8,6 +8,7 @@ subcmd_attr 		= '__subcmd__'
 maincmd_attr 		= '__maincmd__'
 add_attr		= '__add__'
 parser_func_attr	= '__func__'
+action_filter_attr	= '__filter__'
 subcmd_dest_suffix 	= 'subcommand'
 
 prog			= 'program'

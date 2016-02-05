@@ -1,9 +1,9 @@
 
-from redcmd.api import Maincommand, maincmd, Arg
+from redcmd.api import Maincommand, maincmd, Arg, PathArg
 
 
 class Curlcommand(Maincommand):
-	def options(self, headers=None, user_agent=None, cookie_file=None):
+	def options(self, headers=None, user_agent=None, cookie_file=PathArg(opt=True, ext_list=['txt'])):
 		self.headers 		= headers
 		self.user_agent 	= user_agent
 		self.cookie_file 	= cookie_file
