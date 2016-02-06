@@ -1,6 +1,6 @@
 from unittest import TestCase, main as ut_main
 from fnmatch import fnmatch
-from os.path import basename
+from os.path import basename, join as joinpath, dirname
 
 from redcmd.commandline import CommandLine
 from redcmd.command_collection import CommandCollection
@@ -16,7 +16,7 @@ class TestGenerator(TestCase):
 	@classmethod
 	def setUpClass(cls):
 		cls.saved_PathFilter_glob = PathFilter.glob
-		mock_glob = lambda s, p : [f for f in cls.flist if fnmatch(f, basename(p))]
+		mock_glob = lambda s, path, pat : [f for f in cls.flist if fnmatch(f, basename(pat))]
 		PathFilter.glob = mock_glob
 
 
@@ -129,9 +129,12 @@ class TestGenerator(TestCase):
 		self.assertEqual(gen('maincmd some_url -u Firefox -x', '-x'), [])
 		self.assertEqual(gen('maincmd some_url -h', '-h'), ['-he'])
 
+		dirpath = '/home/user/'
+		jp = lambda f : joinpath(dirname(dirpath), f)
+
 		self.assertEqual(gen('maincmd some_url -c ', ''), [f for f in self.flist if f.endswith('.txt')])
 		self.assertEqual(gen('maincmd some_url -c a', 'a'), ['a.txt'])
-		self.assertEqual(gen('maincmd some_url -c /home/user/a', '/home/user/a'), ['a.txt'])
+		self.assertEqual(gen('maincmd some_url -c /home/user/a', '/home/user/a'), [jp('a.txt')])
 
 
 	def test_subcls_maincmd(self):

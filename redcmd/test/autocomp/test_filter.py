@@ -3,6 +3,8 @@ from fnmatch import fnmatch
 from os.path import basename, join as joinpath, dirname
 import re
 
+import six
+
 from redcmd.autocomp.filter import ListFilter, PathFilter
 
 
@@ -35,36 +37,36 @@ class TestFilter(TestCase):
 		jp = lambda f : joinpath(dirname(dirpath), f)
 
 		pf = PathFilter(ext_list=['txt'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if f.endswith('.txt')])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if f.endswith('.txt')])
 
 		pf = PathFilter(ext_list=['txt', 'html'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if f.endswith('.txt') or f.endswith('.html')])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if f.endswith('.txt') or f.endswith('.html')])
 
 		pf = PathFilter()
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist])
 
 		txt_filter = lambda x : re.match('^.{1}\.txt$', x) is not None
 		pf = PathFilter(glob_list=['?.txt'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if txt_filter(f)])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if txt_filter(f)])
 
 		regex = '.*me.*'
 		me_filter = lambda x : re.match(regex, x) is not None
 		pf = PathFilter(regex_list=[regex])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if me_filter(f)])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if me_filter(f)])
 
 		pf = PathFilter(regex_list=[regex], glob_list=['?.txt'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if me_filter(f) or txt_filter(f)])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if me_filter(f) or txt_filter(f)])
 
 		pf = PathFilter(regex_list=[regex], glob_list=['?.txt'], ext_list=['html'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if me_filter(f) or txt_filter(f) or f.endswith('.html')])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if me_filter(f) or txt_filter(f) or f.endswith('.html')])
 		
 		dirpath = '/home/user/a'
 		pf = PathFilter(ext_list=['txt'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if f.startswith('a') and f.endswith('.txt')])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if f.startswith('a') and f.endswith('.txt')])
 
 		dirpath = '/home/user/ab'
 		pf = PathFilter(ext_list=['txt'])
-		self.assertItemsEqual(pf.match(dirpath), [jp(f) for f in self.flist if f.startswith('ab') and f.endswith('.txt')])
+		six.assertCountEqual(self, pf.match(dirpath), [jp(f) for f in self.flist if f.startswith('ab') and f.endswith('.txt')])
 
 
 if __name__ == '__main__':
