@@ -1,7 +1,8 @@
 import re
 import glob
-from os import sep
-from os.path import dirname, basename, expanduser
+from os import sep, listdir
+from fnmatch import fnmatch
+from os.path import dirname, basename, expanduser, join as joinpath, isfile, isdir
 from zope.interface import Interface, Attribute, implementer
 
 
@@ -37,24 +38,22 @@ class PathFilter:
 
 
 	def match(self, name):
-		dirpath = expanduser(dirname(name))
-		if dirpath == '':
-			dirpath = '.'
+		dirpath = dirname(name)
 
 		if not any([len(i) > 0 for i in [self.ext_list, self.regex_list, self.glob_list]]):
 			self.glob_list.append('*')		# no filters, return all
 
 		ext_matches = []
 		for e in self.ext_list:
-			ext_matches.extend(self.glob(dirpath + sep + '*.' + e))
+			ext_matches.extend(self.glob(dirpath, '*.' + e))
 
 		glob_matches = []
 		for p in self.glob_list:
-			glob_matches.extend(self.glob(dirpath + sep + p))
+			glob_matches.extend(self.glob(dirpath, p))
 
 		regex_matches = []
 		if len(self.regex_list) > 0:
-			allf = self.glob(dirpath + sep + '*')
+			allf = self.glob(dirpath, '*')
 			for r in self.regex_list:
 				cr = re.compile(r)
 				for p in allf:
@@ -66,13 +65,31 @@ class PathFilter:
 		prefix = basename(name)
 		if prefix != '':
 			lf = ListFilter(nodups)
-			return lf.match(prefix)
+			result = lf.match(prefix)
 		else:
-			return nodups
+			result = nodups
+
+		return [joinpath(dirpath, n) for n in result]
 
 
-	def glob(self, path):
-		return [basename(p) for p in glob.glob(path)]
+	def glob_expr(self, dirpath, suffix):
+		if dirpath == '':
+			dirpath = '.'
+
+		return joinpath(expanduser(dirpath), sep, suffix)
+
+
+	def glob(self, dirpath, glob_pattern):
+		if dirpath == '':
+			dirpath = '.'
+
+		edirpath = expanduser(dirpath)
+		fdlist = listdir(edirpath)
+
+		isd = lambda x : isdir(joinpath(edirpath, x)) 
+		isf = lambda x : isfile(joinpath(edirpath, x)) 
+
+		return [f for f in fdlist if (isf(f) and fnmatch(f, glob_pattern)) or isd(f)]
 
 
 	def __getstate__(self):

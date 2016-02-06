@@ -12,6 +12,10 @@ function _redcmd_autocomp_function()
 
 	options=($(redcmd autocomp gen "${comp_line}" "$comp_word" 2>/dev/null))
 	
+	if [[ ${#options[@]} -gt 0 ]] && [[ ${options[0]} =~ \/ ]]; then
+	      compopt -o filenames
+	fi
+
 	if [ $? -eq 0 ]
 	then
 		COMPREPLY=("${options[@]}")
