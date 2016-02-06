@@ -1,9 +1,12 @@
 import re
 import glob
+import shlex
 from os import sep, listdir
 from fnmatch import fnmatch
 from os.path import dirname, basename, expanduser, join as joinpath, isfile, isdir
+
 from zope.interface import Interface, Attribute, implementer
+from six.moves import shlex_quote
 
 
 class IFilter(Interface):
@@ -68,8 +71,8 @@ class PathFilter:
 			result = lf.match(prefix)
 		else:
 			result = nodups
-
-		return [joinpath(dirpath, n) for n in result]
+		
+		return [shlex_quote(joinpath(dirpath, n)) for n in result]
 
 
 	def glob_expr(self, dirpath, suffix):

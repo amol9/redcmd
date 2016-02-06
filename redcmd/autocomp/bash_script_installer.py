@@ -1,6 +1,6 @@
 import stat
 from os.path import exists, join as joinpath, dirname
-from os import access, getuid, linesep, chmod, lstat, W_OK, remove
+from os import access, linesep, chmod, lstat, W_OK, remove
 
 from zope.interface import implementer
 from redlib.api.misc import TextFile, TextFileError
@@ -9,6 +9,7 @@ from redlib.api.system import sys_command
 from .. import const
 from ..datastore import DataStore
 from .shell_script_installer import IShellScriptInstaller, ShellScriptInstallError
+from ..const import getuid
 
 
 @implementer(IShellScriptInstaller)

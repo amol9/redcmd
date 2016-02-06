@@ -114,7 +114,7 @@ class AutocompSubSubcommands(AutocompSubcommand):
 		try:
 			dstore = DataStore()
 			for name, scope in dstore.list_optiontree().iteritems():
-				print('{0:<15} [{1}]'.format(name, ' ,'.join(scope)))
+				print('{0:<15} [{1}]'.format(name, ', '.join(scope)))
 		except DataStoreError as e:
 			print(e)
 			raise CommandError()

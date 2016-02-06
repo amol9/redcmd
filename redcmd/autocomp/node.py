@@ -10,6 +10,19 @@ class Node(object):
 		self._common	= []
 
 
+	def __getstate__(self):
+		return [self._name, self._alias, self._children, self._filters, self._subcmd, self._common]
+
+	
+	def __setstate__(self, data):
+		self._name 	= data[0]
+		self._alias	= data[1]
+		self._children	= data[2]
+		self._filters	= data[3]
+		self._subcmd	= data[4]
+		self._common	= data[5]
+
+
 	def add_child(self, node):
 		assert node.__class__ == Node
 		assert self._filters is None		# presence of a match filter means it's a positional or optional arg

@@ -23,7 +23,7 @@ setup(
 	packages		= find_packages(),
 	include_package_data	= True,
 	scripts			= ['ez_setup.py', 'rc_setup.py'],
-	install_requires	= ['redlib>=1.0.5', 'zope.interface'],
+	install_requires	= ['redlib>=1.1.0', 'zope.interface'],
 	entry_points		= entry_points,
 	classifiers		= [
 					'Development Status :: 4 - Beta',
