@@ -19,7 +19,7 @@ from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 # -
 
 
-@skip
+#@skip
 class TestBASHScriptInstaller(TestCase):
 
 	test_home 	= './home'
@@ -72,7 +72,8 @@ class TestBASHScriptInstaller(TestCase):
 		bsi.setup_base()
 
 		if getuid() == 0:
-			self.assertTrue(exists(bsi.profile_d_file))
+			tf = TextFile(bsi.system_bashrc_file)
+			self.assertTrue(tf.find_section(bsi.id_prefix + 'autocomplete_function'))
 
 		self.assertTrue(exists(bsi.user_script_file))
 		self.assertTrue(exists(bsi.user_cmdlist_file))
@@ -86,9 +87,10 @@ class TestBASHScriptInstaller(TestCase):
 		bsi.remove_base()
 
 		if getuid() == 0:
-			self.assertFalse(exists(bsi.profile_d_file))
+			tf = TextFile(bsi.system_bashrc_file)
+			self.assertFalse(tf.find_section(bsi.id_prefix + 'autocomplete_function'))
 
-		self.assertTrue(exists(bsi.user_script_file))
+		self.assertFalse(exists(bsi.user_script_file))
 		self.assertTrue(exists(bsi.user_cmdlist_file))
 
 		tf = TextFile(bsi.user_bashrc_file)

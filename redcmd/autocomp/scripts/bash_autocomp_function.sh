@@ -1,5 +1,3 @@
-#!/bin/bash
-
 function _redcmd_autocomp_function()
 {
 	local comp_word=${COMP_WORDS[COMP_CWORD]}
@@ -23,4 +21,3 @@ function _redcmd_autocomp_function()
 }
 
 export -f _redcmd_autocomp_function
-

@@ -15,10 +15,10 @@ from ..const import getuid
 @implementer(IShellScriptInstaller)
 class BASHScriptInstaller:
 
-	profile_d_dir		= '/etc/profile.d'
 	profile_d_file 		= '/etc/profile.d/redcmd_autocomp.sh'
 	bash_completion_d_dir	= '/etc/bash_completion.d'
 	user_bashrc_file	= joinpath(const.user_home, '.bashrc')
+	system_bashrc_file	= '/etc/bash.bashrc'
 
 	id_prefix		= '__redcmd_autocomp_'
 	user_script_file	= joinpath(const.script_dir, 'autocomp_func.sh')
@@ -26,6 +26,7 @@ class BASHScriptInstaller:
 
 	script_template_file	= joinpath(dirname(__file__), 'scripts', 'bash_autocomp_function.sh')
 	template_func_name	= '_redcmd_autocomp_function'
+	shebang			= '#!/bin/bash'
 
 
 	def __init__(self):
@@ -41,7 +42,11 @@ class BASHScriptInstaller:
 				exists(self.user_cmdlist_file)
 
 		if getuid() == 0:
-			return exists(self.profile_d_file) and user_setup
+			tfile = TextFile(self.system_bashrc_file)
+			try:
+				return tfile.find_section(self.id_prefix + 'autocomplete_function') and user_setup
+			except TextFileError as e:
+				return False
 		else:
 			return user_setup
 
@@ -62,13 +67,19 @@ class BASHScriptInstaller:
 		script = script.replace(self.template_func_name, const.autocomp_function)
 
 		if getuid() == 0:
-			if not access(self.profile_d_dir, W_OK):
-				raise ShellScriptInstallerError('cannot write to %s'%self.system_profile_dir)
 
-			with open(self.profile_d_file, 'w') as f:
-				f.write(script)
+			if not exists(self.system_bashrc_file):
+				print('%s does not exist, system wide redcmd autocomplete will not be available'%self.system_bashrc_file)
+
+			else:
+				if not access(self.system_bashrc_file, W_OK):
+					raise ShellScriptInstallerError('cannot write to %s'%self.system_bashrc_file)
+
+				tfile = TextFile(self.system_bashrc_file)
+				tfile.append_section(script , id=self.id_prefix + 'autocomplete_function')
 
 		with open(self.user_script_file, 'w') as f:
+			f.write(self.shebang + linesep)
 			f.write(script + linesep)
 			f.write('source %s'%self.user_cmdlist_file + linesep)
 
@@ -99,26 +110,56 @@ class BASHScriptInstaller:
 
 
 	def remove_base(self):
+		tfile_system_bashrc = TextFile(self.system_bashrc_file)
+		err_msg = ''
+		failed = False
+
+
 		if getuid() == 0:
+			self.remove_old_base()
 			try:
-				remove(self.profile_d_file)
-			except FileNotFoundError:
-				pass
+				tfile_system_bashrc.remove_section(self.id_prefix + 'autocomplete_function')
+			except TextFileError as e:
+				err_msg += str(e) + linesep
+				failed = True
 			except IOError as e:
 				raise ShellScriptInstallError(str(e))
-		
-		tfile = TextFile(self.user_bashrc_file)
-		tfile.remove_lines(self.id_prefix + 'user_script')
+	
+		try:
+			tfile_user_bashrc = TextFile(self.user_bashrc_file)
+			tfile_user_bashrc.remove_lines(self.id_prefix + 'user_script')
+		except TextFileError as e:
+			err_msg += str(e) + linesep
+			failed= True
 
-		if getuid() != 0 and exists(self.profile_d_file):
-			print('Base script has been removed from %s, but not from %s.\n'%(self.user_bashrc_file, self.profile_d_dir) +
+		if exists(self.user_script_file):
+			try:
+				remove(self.user_script_file)
+			except (OSError, IOError) as e:
+				err_msg += str(e) + linesep
+
+		if len(err_msg) > 0:
+			print(err_msg)
+
+		if not failed and getuid() != 0 and tfile_system_bashrc.find_section(self.id_prefix + 'autocomplete_function'):
+			print('Base script has been removed from %s, but not from %s.\n'%(self.user_bashrc_file, self.system_bashrc_file) +
 				'Autocomplete supported by redcmd will still for commands setup for system wide autocomplete (i.e. as root).\n' +
 				'Please execute as root to remove them.')
-		else:
+		elif not failed:
 			print('Base scripts have been removed. Autocomplete supported by redcmd will no longer work.')
+		else:
+			raise ShellScriptInstallError('Failed to remove base scripts.')
 
 		# remove for current session
 		#sys_command('unset -f %s'%const.autocomp_function)
+
+
+	def remove_old_base(self):
+		if exists(self.profile_d_file):
+			try:
+				remove(self.profile_d_file)
+			except (OSError, IOError) as e:
+				print(e + linesep + 'could not remove %s, please remove it manually'%self.profile_d_file)
 
 
 	def setup_cmd(self, cmdname):

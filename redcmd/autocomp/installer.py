@@ -8,6 +8,7 @@ from ..command_collection import CommandCollection, CommandCollectionError
 from .shell_script_installer_factory import get_shell_script_installer
 from ..datastore import DataStore, DataStoreError
 from ..client.redcmd_internal_subcommand import RedcmdInternalSubcommand
+from .shell_script_installer import ShellScriptInstallError
 
 
 class InstallError(Exception):
@@ -17,15 +18,24 @@ class InstallError(Exception):
 class Installer:
 
 	def __init__(self):
-		self._shell_script_installer = get_shell_script_installer()
+		try:
+			self._shell_script_installer = get_shell_script_installer()
+		except ShellScriptInstallError as e:
+			raise InstallError(e)
 
 
 	def setup_base(self):
-		self._shell_script_installer.setup_base()
+		try:
+			self._shell_script_installer.setup_base()
+		except ShellScriptInstallError as e:
+			raise InstallError(e)
 
 
 	def remove_base(self):
-		self._shell_script_installer.remove_base()
+		try:
+			self._shell_script_installer.remove_base()
+		except ShellScriptInstallError as e:
+			raise InstallError(e)
 
 
 	def setup_cmd_by_exe(self, cmdname, _to_hyphen=False):
