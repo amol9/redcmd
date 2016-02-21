@@ -7,10 +7,11 @@ from .exc import CommandLineError
 from .autocomp.installer import Installer, InstallError
 
 
-__all__ = ['setup_autocomp', 'remove_autocomp', 'commandline_execute']
+__all__ = ['setup_autocomp', 'remove_autocomp', 'commandline_execute', 'remove_base']
 
 
 def setup_autocomp(commands_module, command_name=None, _to_hyphen=False):
+	success = False
 	print('installing redcmd autocomplete support...')
 	try:
 		import_module(commands_module)
@@ -21,8 +22,11 @@ def setup_autocomp(commands_module, command_name=None, _to_hyphen=False):
 	try:
 		installer = Installer()
 		installer.setup_cmd(command_name, _to_hyphen=_to_hyphen)
+		success = True
 	except InstallError as e:
 		print(e)
+
+	return success
 
 
 def remove_autocomp(command_name):

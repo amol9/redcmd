@@ -4,6 +4,7 @@ from redlib.api.system import is_linux, is_windows
 
 from .bash_script_installer import BASHScriptInstaller
 from .posh_script_installer import PoshScriptInstaller
+from .shell_script_installer import ShellScriptInstallError
 
 
 def get_shell_script_installer():
@@ -16,7 +17,7 @@ def get_shell_script_installer():
 		return BASHScriptInstaller()
 
 	elif is_windows():
-		return PoshScriptInstaller()
+		raise ShellScriptInstallError('platform not supported')
 
 	else:
 		raise ShellScriptInstallError('platform not supported')

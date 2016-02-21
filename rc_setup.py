@@ -13,8 +13,9 @@ def setup_autocomp(commands_module, command_name, _to_hyphen=False):
 			print('cannot setup autocomplete for %s'%command_name)
 			return
 		
-		rc_api.setup_autocomp(commands_module, command_name, _to_hyphen=_to_hyphen)
-		print('autocomplete setup for %s'%command_name)
+		success = rc_api.setup_autocomp(commands_module, command_name, _to_hyphen=_to_hyphen)
+		if success:
+			print('autocomplete setup for %s'%command_name)
 
 
 def remove_base():
