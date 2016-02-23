@@ -19,7 +19,7 @@ from redcmd.autocomp.bash_script_installer import BASHScriptInstaller
 # -
 
 
-#@skip
+@skip
 class TestBASHScriptInstaller(TestCase):
 
 	test_home 	= './home'

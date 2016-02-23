@@ -8,7 +8,7 @@ A simple library to handle command line of an application with support for subco
 Supported platforms
 ===================
 
-* python 2.7 / 3.x
+* python 2.7 / 3.4
 * Linux / Windows
 
 
@@ -18,13 +18,14 @@ Features
 * Decorator as well as subclass based command addition. 
 * Custom help text formatter which improves upon the rather lousy default formatter.
 * Automatic help text extraction from doc strings.
+* Autocomplete support.
 
 
 Usage
 =====
 A simple case of just the main command (without any subcommands)::
 
-        from redcmd import maincmd, CommandLine, CommandLineError
+        from redcmd.api import maincmd, commandline_execute
 
         @maincmd
         def main(a, b):
@@ -41,12 +42,7 @@ A simple case of just the main command (without any subcommands)::
                         print('bad integer')
                         raise CommandError()
 
-        cmdline = CommandLine()
-        try:
-                cmdline.execute()
-        except CommandLineError as e:
-                print(e)
-       
+        commandline_execute() 
 
 See examples directory in code for decorator and subclass based command handling.
 [https://github.com/amol9/redcmd/tree/master/examples]
