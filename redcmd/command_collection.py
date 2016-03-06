@@ -1,4 +1,5 @@
 import inspect
+import types
 from argparse import _SubParsersAction, ArgumentParser, _VersionAction, _HelpAction
 
 from redlib.api.misc import Singleton, extract_help
@@ -15,6 +16,7 @@ from .autocomp.option_tree import OptionTree, OptionTreeError
 from .autocomp.node import Node
 from .autocomp.filter import ListFilter
 from .datastore import DataStore
+from .helper import get_func
 
 
 # Notes
@@ -257,14 +259,20 @@ class _CommandCollection:
 			usn.append('v')
 
 		if add_arg_funcs is not None:
-			for arg_func in add_arg_funcs:
-				fname = arg_func.__name__
+			for a in add_arg_funcs:
+				func = get_func(a, cmd_cls)
+
+				if func is None:
+					raise CommandCollectionError('invalid type for additional param function, must be function / str')
+
+				fname = func.__name__
+
 				if fname in self._add_arg_parsers.keys():
 					arg_parser = self._add_arg_parsers[fname]
 					add_arg_parsers.append(arg_parser)
 				else:
 					arg_parser = ArgumentParser(add_help=False)
-					self.add_args_to_parser(arg_func, cmd_cls, arg_parser, common=True, usn=usn)
+					self.add_args_to_parser(func, cmd_cls, arg_parser, common=True, usn=usn)
 
 					add_arg_parsers.append(arg_parser)
 					self._add_arg_parsers[fname] = arg_parser
