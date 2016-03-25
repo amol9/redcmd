@@ -49,7 +49,7 @@ from .helper import get_func
 added_arg = lambda x : x.__class__ != _HelpAction and x.__class__ != _VersionAction
 
 
-class _CommandCollection:
+class _CommandCollection(object):
 
 	def __init__(self):
 		self._cmdparser 		= CommandParser(formatter_class=CommandHelpFormatter)
@@ -57,6 +57,7 @@ class _CommandCollection:
 		self._optiontree 		= None
 		self._to_hyphen			= False
 		self._add_arg_parsers		= {}
+		self._subcmd_attr		= const.subcmd_attr
 
 
 	def set_details(self, prog=None, description=None, version=None, _to_hyphen=False):
@@ -147,7 +148,7 @@ class _CommandCollection:
 
 			if True or inspect.ismethod(member_val):
 				func = member_val
-				if getattr(func, const.subcmd_attr, None) is not None:
+				if getattr(func, self._subcmd_attr, None) is not None:
 					if not func.__name__ in subcmd_cls.__dict__.keys():
 						continue
 
@@ -458,7 +459,7 @@ class _CommandCollection:
 
 
 	def execute(self, args, namespace, internal=False):	# to be called for execution of command line
-		args = None
+		#args = None
 
 		if not internal:
 			args = self._cmdparser.parse_args(args, namespace)
@@ -470,7 +471,7 @@ class _CommandCollection:
 			raise CommandCollectionError('target function for command not found')
 
 		try:
-			cmd_func.execute(args)
+			return cmd_func.execute(args)
 		except CommandError as e:
 			raise CommandCollectionError(e)
 

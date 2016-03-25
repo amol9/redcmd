@@ -5,9 +5,10 @@ from .exc import CommandCollectionError, MaincommandError, SubcommandError, Comm
 from .maincommand import Maincommand
 from .subcommand import Subcommand
 from . import const
+from .move_collection import MoveCollection
 
 
-__all__ = ['subcmd', 'maincmd']
+__all__ = ['subcmd', 'maincmd', 'moved']
 
 
 def subcmd(func=None, add=None, parent=None):
@@ -67,3 +68,27 @@ def maincmd(func=None, add=None):
 	else:
 		return maincmd_dec(func)
 	
+
+def moved(func=None, parent=None):
+	def moved_dec(func):
+		move_collection = MoveCollection()
+		move_collection.add_move(parent, func.__name__)
+
+		if member_of_a_class(func): 
+			func.__dict__[const.moved_attr] = True
+			return func
+
+		try:
+			move_collection.add_subcommand(func, parent=parent)
+		except (SubcommandError, CommandCollectionError) as e:
+			print(e)
+			raise CommandLineError('error creating command line structure')
+
+		return func
+
+	if func is None:
+		return moved_dec
+	else:
+		return moved_dec(func)
+
+

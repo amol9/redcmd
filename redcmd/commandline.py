@@ -6,6 +6,7 @@ from .command_collection import CommandCollection
 from .autocomp.installer import Installer, InstallError
 from .exc import CommandCollectionError, CommandLineError
 from .client.redcmd_internal_subcommand import RedcmdInternalSubcommand
+from .move_collection import MoveCollection
 
 
 __all__ = ['CommandLine']
@@ -15,7 +16,7 @@ class CommandLine(object):
 	'Command line handler.'
 
 	def __init__(self, prog=const.prog, description=const.description, version=const.version, 
-			default_subcommand=None, namespace=None, _to_hyphen=False):
+			default_subcommand=None, namespace=None, _to_hyphen=False, moves=False):
 
 		self._command_collection = CommandCollection()
 		self._command_collection.set_details(prog=prog, description=description, version=version, _to_hyphen=_to_hyphen)
@@ -23,6 +24,8 @@ class CommandLine(object):
 		self._default_subcommand = default_subcommand
 		self._namespace = namespace
 		self._prog = prog
+
+		self._moves = moves
 
 	
 	def execute(self, args=None, namespace=None):
@@ -39,14 +42,20 @@ class CommandLine(object):
 		except CommandCollectionError as e:
 			raise CommandLineError('error creating command line structure')
 
-		#import pdb; pdb.set_trace()
 		if self._default_subcommand is not None and len(sys.argv) == 1 :
 			sys.argv.append(self._default_subcommand)
 
 		if namespace is None:
 			namespace = self._namespace
-	
+
 		try:
+			if self._moves:
+				move_collection = MoveCollection()
+				move_collection.set_details(prog=self._prog)
+				move_collection.add_commands()
+				if move_collection.is_moved(args):
+					args = move_collection.move(args)
+
 			self._command_collection.execute(args, namespace)
 		except CommandCollectionError as e:
 			raise CommandLineError(e)
