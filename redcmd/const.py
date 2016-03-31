@@ -13,6 +13,7 @@ maincmd_attr 		= '__maincmd__'
 add_attr		= '__add__'
 parser_func_attr	= '__func__'
 action_filter_attr	= '__filter__'
+action_hidden_attr	= '__hidden__'
 moved_attr		= '__moved__'
 
 subcmd_dest_suffix 	= 'subcommand'

@@ -9,7 +9,7 @@ __all__ = ['Arg', 'PathArg', 'make_filter', 'EnumArg', 'IntArg', 'FloatArg', 'Nu
 
 
 class Arg(object):
-	def __init__(self, pos=True, opt=False, choices=None, default=None, nargs=None):
+	def __init__(self, pos=True, opt=False, choices=None, default=None, nargs=None, short=None, hidden=False):
 		if opt:
 			pos = False
 
@@ -18,6 +18,8 @@ class Arg(object):
 		self.choices 	= choices
 		self.default 	= default
 		self.nargs 	= nargs
+		self.short	= short
+		self.hidden	= hidden
 
 
 	def convert(self, value, name='value'):
@@ -25,8 +27,8 @@ class Arg(object):
 
 
 class PathArg(Arg):
-	def __init__(self, pos=True, opt=False, ext_list=[], regex_list=[], glob_list=[]):
-		super(PathArg, self).__init__(pos=pos, opt=opt)
+	def __init__(self, pos=True, opt=False, short=None, hidden=False, ext_list=[], regex_list=[], glob_list=[]):
+		super(PathArg, self).__init__(pos=pos, opt=opt, short=short, hidden=hidden)
 
 		self.ext_list	= ext_list
 		self.regex_list	= regex_list
@@ -34,8 +36,8 @@ class PathArg(Arg):
 
 
 class EnumArg(Arg):
-	def __init__(self, pos=True, opt=False, choices=None, default=None, nargs=None):
-		super(EnumArg, self).__init__(pos=pos, opt=opt)
+	def __init__(self, pos=True, opt=False, short=None, hidden=False, choices=None, default=None, nargs=None):
+		super(EnumArg, self).__init__(pos=pos, opt=opt, short=short, hidden=hidden)
 
 		self.enum 	= choices
 		self.choices 	= enum_names(self.enum)
@@ -47,8 +49,8 @@ class EnumArg(Arg):
 
 
 class NumArg(Arg):
-	def __init__(self, pos=True, opt=False, default=None, min=None, max=None, ntype=None):
-		super(NumArg, self).__init__(pos=pos, opt=opt, default=default)
+	def __init__(self, pos=True, opt=False, default=None, short=None, hidden=False, min=None, max=None, ntype=None):
+		super(NumArg, self).__init__(pos=pos, opt=opt, default=default, short=short, hidden=hidden)
 	
 		self.min 	= min
 		self.max 	= max
@@ -79,13 +81,13 @@ class NumArg(Arg):
 
 
 class IntArg(NumArg):
-	def __init__(self, pos=True, opt=False, default=None, min=None, max=None):
-		super(IntArg, self).__init__(pos=pos, opt=opt, default=default, ntype=int, min=min, max=max)
+	def __init__(self, pos=True, opt=False, default=None, short=None, hidden=False, min=None, max=None):
+		super(IntArg, self).__init__(pos=pos, opt=opt, default=default, ntype=int, min=min, max=max, short=short, hidden=hidden)
 
 
 class FloatArg(NumArg):
-	def __init__(self, pos=True, opt=False, default=None, min=None, max=None):
-		super(FloatArg, self).__init__(pos=pos, opt=opt, default=default, ntype=float, min=min, max=max)
+	def __init__(self, pos=True, opt=False, default=None, short=None, hidden=False, min=None, max=None):
+		super(FloatArg, self).__init__(pos=pos, opt=opt, default=default, ntype=float, min=min, max=max, short=short, hidden=hidden)
 
 
 def make_filter(arg_obj):

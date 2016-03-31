@@ -133,15 +133,15 @@ class _CommandCollection(object):
 		self.add_subcommand_classes(InternalSubcommand, self._internal_cmdparser)
 
 
-	def add_subcommand_classes(self, cls, parser):
+	def add_subcommand_classes(self, cls, parser, parent_add_args=None):
 		subcmd_added = False
 		if getattr(cls, '__subclasses__', None) is not None:
 			for subcmd_cls in cls.__subclasses__():
-				subcmd_added |= self.add_subcommand_group(subcmd_cls, parser)
+				subcmd_added |= self.add_subcommand_group(subcmd_cls, parser, parent_add_args=parent_add_args)
 		return subcmd_added
 
 
-	def add_subcommand_group(self, subcmd_cls, parser):
+	def add_subcommand_group(self, subcmd_cls, parser, parent_add_args=None):
 		subcmd_added = False
 		for member_name, member_val in inspect.getmembers(subcmd_cls, predicate=\
 		lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
@@ -155,6 +155,13 @@ class _CommandCollection(object):
 					if self._optiontree is not None:
 						self._optiontree.add_node(Node(self.utoh(func.__name__), subcmd=True))
 
+					add_args = getattr(func, const.add_attr, None)
+					if add_args is None:
+						add_args = parent_add_args
+						func.__dict__[const.add_attr] = parent_add_args
+					else:
+						add_args.extend(parent_add_args or [])
+
 					subcmd_parser = self.add_subcommand(
 								func,
 								cmd_cls=subcmd_cls,
@@ -162,7 +169,7 @@ class _CommandCollection(object):
 								group_name=subcmd_cls.__name__.lower())
 					subcmd_added = True
 
-					self.add_subcommand_classes(subcmd_cls, subcmd_parser)
+					self.add_subcommand_classes(subcmd_cls, subcmd_parser, parent_add_args=add_args)
 
 					if self._optiontree is not None:
 						self._optiontree.pop()
@@ -223,7 +230,7 @@ class _CommandCollection(object):
 			spa = subparsers._group_actions[0]	
 
 		#print 'spa class: ', spa.__class__
-		if spa.__class__ != _SubParsersAction: import pdb; pdb.set_trace()
+		#if spa.__class__ != _SubParsersAction: import pdb; pdb.set_trace()
 		return self.add_subcommand_to_spa(func, cmd_cls, spa)
 
 
@@ -247,7 +254,6 @@ class _CommandCollection(object):
 
 		setattr(parser, const.parser_func_attr, func)		# for creating option tree after arg parser has been created
 		self.add_args_to_parser(func, cmd_cls, parser)
-
 
 		return parser
 
@@ -304,36 +310,44 @@ class _CommandCollection(object):
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
-			default = names = choices = nargs = action = filter = None	
+			default = names = choices = nargs = action = filter = None
+			hidden = False
 
 			if arg_index >= defaults_offset:		# argument has a default value
 				arg_default = argspec.defaults[arg_index - defaults_offset]
-				short = self.shorten_arg_name(arg, used_short_names)
-				used_short_names.append(short)
 
-				names = ['-' + short, '--' + arg]
+				def get_opt_arg_names(arg, short=None):
+					short = short or self.shorten_arg_name(arg, used_short_names)
+					used_short_names.append(short)
+
+					names = ['-' + short, '--' + arg]
+					return names
 
 				if arg_default.__class__ == Arg or issubclass(arg_default.__class__, Arg):
 					filter 	= make_filter(arg_default)
 					choices = arg_default.choices
 					default = arg_default.default
 					nargs 	= arg_default.nargs
+					hidden	= arg_default.hidden
 
 					if arg_default.pos:
 						if default is not None:
 							nargs = '?'
 						names = [arg]
+					else:
+						names = get_opt_arg_names(arg, arg_default.short)
 
 					#if default is None or arg_default.pos:
 					#	names = [arg]		# positional argument
 				else:
-					if type(arg_default) == bool:
-						if arg_default:
-							action = 'store_false'
-						else:
-							action = 'store_true'
+					names = get_opt_arg_names(arg)
+					default = arg_default
+
+				if type(default) == bool:
+					if default:
+						action = 'store_false'
 					else:
-						default = arg_default
+						action = 'store_true'
 
 			else:
 				names = [arg]				# positional argument
@@ -359,8 +373,9 @@ class _CommandCollection(object):
 
 			action = parser.add_argument(*names, **kwargs)
 			setattr(action, const.action_filter_attr, filter)
+			setattr(action, const.action_hidden_attr, hidden)
 
-			if not common:
+			if not common and not hidden:
 				self.add_to_optiontree(names, default, choices, filter)
 			else:
 				parser.common_args.add_child(self.make_ot_node(names, default, choices, filter))

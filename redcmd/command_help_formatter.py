@@ -5,6 +5,8 @@ import textwrap
 from redlib.api.misc import trim_docstring
 from redlib.api.system import get_terminal_size
 
+from . import const
+
 
 class CommandHelpFormatter(HelpFormatter):
 
@@ -68,7 +70,9 @@ class CommandHelpFormatter(HelpFormatter):
 				out += os.linesep
 			return out
 
-		def format_action(name, helptext, choices, default, action):
+		def format_action(name, helptext, choices, default, is_action, hidden):
+			if hidden:
+				return ''
 
 			out = ''
 			def wrap(text):
@@ -89,7 +93,7 @@ class CommandHelpFormatter(HelpFormatter):
 
 			default_lines = []
 
-			if not action:
+			if not is_action:
 				if not default in [None, SUPPRESS] :
 					default = 'default: ' + str(default)
 				else:
@@ -104,8 +108,10 @@ class CommandHelpFormatter(HelpFormatter):
 
 		for o in optionals:
 			name = ', '.join(o.option_strings)
-			action = True if issubclass(o.__class__, Action) else False
-			help += format_action(name, o.help, o.choices, o.default, action)
+			is_action = True if issubclass(o.__class__, Action) else False
+			hidden = getattr(o, const.action_hidden_attr, False) or False
+
+			help += format_action(name, o.help, o.choices, o.default, is_action, hidden)
 			usage += '[%s] '%name
 
 		for p in positionals:
@@ -117,7 +123,8 @@ class CommandHelpFormatter(HelpFormatter):
 				usage += 'subcommand [args...]'
 		
 			else:
-				help += format_action(p.dest, p.help, p.choices, p.default, False)
+				hidden = getattr(p, const.action_hidden_attr, False) or False
+				help += format_action(p.dest, p.help, p.choices, p.default, False, hidden)
 				usage += '%s '%p.dest
 
 		if self._extrahelp is not None:
