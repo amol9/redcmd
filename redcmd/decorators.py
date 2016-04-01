@@ -14,7 +14,7 @@ __all__ = ['subcmd', 'maincmd', 'moved']
 
 def subcmd(func=None, add=None, parent=None, add_rec=False, add_skip=False):
 	def subcmd_dec(func):
-		if add is not None:
+		if add is not None or add_rec or add_skip:
 			func.__dict__[const.add_attr] = AddArgs(add, add_rec=add_rec, add_skip=add_skip)
 
 		if member_of_a_class(func): 

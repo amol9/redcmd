@@ -155,7 +155,6 @@ class _CommandCollection(object):
 						continue
 
 					if self._optiontree is not None:
-						print 'add node', func.__name__
 						self._optiontree.add_node(Node(self.utoh(func.__name__), subcmd=True))
 
 					add_args = getattr(func, const.add_attr, None)
@@ -358,6 +357,7 @@ class _CommandCollection(object):
 						action = 'store_false'
 					else:
 						action = 'store_true'
+					default = None
 
 			else:
 				names = [arg]				# positional argument
@@ -385,10 +385,11 @@ class _CommandCollection(object):
 			setattr(action, const.action_filter_attr, filter)
 			setattr(action, const.action_hidden_attr, hidden)
 
-			if not common and not hidden:
-				self.add_to_optiontree(names, default, choices, filter)
-			else:
-				parser.common_args.add_child(self.make_ot_node(names, default, choices, filter))
+			if not hidden:
+				if not common:
+					self.add_to_optiontree(names, default, choices, filter)
+				else:
+					parser.common_args.add_child(self.make_ot_node(names, default, choices, filter))
 		# end: for loop
 			
 		longhelp = help.get('long', None)	
