@@ -41,11 +41,14 @@ class _MoveCollection(_CommandCollection):
 		target_args = self.execute(args, namespace)
 
 		if self._warning:
+			saved_showwarning = warnings.showwarning
+
 			def _warning(message, category=DeprecationWarning, filename='', lineno=-1):
 				print('[Deprecation Warning] ' + str(message))
 			warnings.showwarning = _warning
 
 			warnings.warn('moved to \'wallp source\'; executing >wallp %s'%' '.join(target_args))
+			warnings.showwarning = saved_showwarning
 
 		return target_args
 

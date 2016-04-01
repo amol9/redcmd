@@ -1,6 +1,7 @@
 import inspect
 import types
 from argparse import _SubParsersAction, ArgumentParser, _VersionAction, _HelpAction
+from copy import copy
 
 from redlib.api.misc import Singleton, extract_help
 
@@ -17,6 +18,7 @@ from .autocomp.node import Node
 from .autocomp.filter import ListFilter
 from .datastore import DataStore
 from .helper import get_func
+from .add_args import AddArgs
 
 
 # Notes
@@ -153,14 +155,18 @@ class _CommandCollection(object):
 						continue
 
 					if self._optiontree is not None:
+						print 'add node', func.__name__
 						self._optiontree.add_node(Node(self.utoh(func.__name__), subcmd=True))
 
 					add_args = getattr(func, const.add_attr, None)
 					if add_args is None:
-						add_args = parent_add_args
-						func.__dict__[const.add_attr] = parent_add_args
+						if parent_add_args is not None:
+							add_args = copy(parent_add_args)
+							add_args.add_skip = False
+							func.__dict__[const.add_attr] = add_args
 					else:
-						add_args.extend(parent_add_args or [])
+						if parent_add_args is not None:
+							add_args.extend(parent_add_args.args)
 
 					subcmd_parser = self.add_subcommand(
 								func,
@@ -259,7 +265,11 @@ class _CommandCollection(object):
 
 
 	def get_add_parsers(self, func, cmd_cls, main=False):
-		add_arg_funcs = getattr(func, const.add_attr, None)
+		add_args = getattr(func, const.add_attr, None)
+		if add_args is None or add_args.add_skip:
+			return []
+
+		add_arg_funcs = add_args.args
 		add_arg_parsers = []
 		usn = ['h']
 		if main:
@@ -387,7 +397,8 @@ class _CommandCollection(object):
 			parser.set_extrahelp(longhelp)
 
 		if not common:
-			add_arg_funcs = getattr(func, const.add_attr, None)
+			add_args = getattr(func, const.add_attr, None)
+			add_arg_funcs = add_args.args if add_args is not None else None
 			parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, add=add_arg_funcs))	# set class and function to be called for execution
 
 

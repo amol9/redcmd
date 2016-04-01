@@ -118,7 +118,7 @@ class CommandHelpFormatter(HelpFormatter):
 			if p.__class__ == _SubParsersAction:
 				help += os.linesep + 'subcommands:' + os.linesep
 				for subcmd in p.choices.keys():
-					help += format_action(subcmd, p.choices[subcmd].description, None, None, False)
+					help += format_action(subcmd, p.choices[subcmd].description, None, None, False, False)
 
 				usage += 'subcommand [args...]'
 		

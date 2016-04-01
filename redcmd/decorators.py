@@ -6,15 +6,16 @@ from .maincommand import Maincommand
 from .subcommand import Subcommand
 from . import const
 from .move_collection import MoveCollection
+from .add_args import AddArgs
 
 
 __all__ = ['subcmd', 'maincmd', 'moved']
 
 
-def subcmd(func=None, add=None, parent=None):
+def subcmd(func=None, add=None, parent=None, add_rec=False, add_skip=False):
 	def subcmd_dec(func):
 		if add is not None:
-			func.__dict__[const.add_attr] = add
+			func.__dict__[const.add_attr] = AddArgs(add, add_rec=add_rec, add_skip=add_skip)
 
 		if member_of_a_class(func): 
 			func.__dict__[const.subcmd_attr] = True
@@ -47,7 +48,7 @@ def member_of_a_class(func):
 def maincmd(func=None, add=None):
 	def maincmd_dec(func):
 		if add is not None:
-			func.__dict__[const.add_attr] = add
+			func.__dict__[const.add_attr] = AddArgs(add)
 
 		if member_of_a_class(func):
 			func.__dict__[const.maincmd_attr] = True
