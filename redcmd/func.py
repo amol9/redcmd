@@ -5,19 +5,22 @@ from . import const
 from .commandline import CommandLine
 from .exc import CommandLineError
 from .autocomp.installer import Installer, InstallError
+from .datastore import DataStore, DataStoreError
 
 
-__all__ = ['setup_autocomp', 'remove_autocomp', 'commandline_execute', 'remove_base']
+__all__ = ['setup_autocomp', 'remove_autocomp', 'commandline_execute', 'remove_base', 'execute_commandline']
 
 
-def setup_autocomp(commands_module, command_name=None, _to_hyphen=False):
+def setup_autocomp(commands_module=None, command_name=None, _to_hyphen=False, version=None):
 	success = False
-	print('installing redcmd autocomplete support...')
-	try:
-		import_module(commands_module)
-	except ImportError as e:
-		print(e)
-		return
+	#print('installing redcmd autocomplete support...')
+
+	if commands_module is not None:
+		try:
+			import_module(commands_module)
+		except ImportError as e:
+			print(e)
+			return
 
 	try:
 		installer = Installer()
@@ -35,10 +38,15 @@ def remove_autocomp(command_name):
 
 
 def commandline_execute(**kwargs):
+	execute_commandline(**kwargs)
+
+
+def execute_commandline(**kwargs):
 	cl = CommandLine(**kwargs)
 	try:
 		cl.execute()
-	except CommandLineError:
+	except CommandLineError as e:
+		print(e)
 		sys.exit(const.commandline_exc_exit_code)
 
 	sys.exit(0)

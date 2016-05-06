@@ -1,5 +1,6 @@
 
 from six.moves import input
+from redlib.api.prnt import ColumnPrinter, Column
 
 from ..decorators import subcmd
 from ..exc import CommandError
@@ -113,8 +114,15 @@ class AutocompSubSubcommands(AutocompSubcommand):
 
 		try:
 			dstore = DataStore()
-			for name, scope in dstore.list_optiontree().iteritems():
-				print('{0:<15} [{1}]'.format(name, ', '.join(scope)))
+			autocomp_list = dstore.list_autocomp_commands()
+			printer = ColumnPrinter(cols=[Column(width=20), Column(width=10), Column(width=10)])
+
+			for i in autocomp_list:
+				c = len(i.access)
+				printer.printf(i.command, i.access[0], i.version[0] or 'n/a')
+				if c > 1:
+					printer.printf('', i.access[1], i.version[1] or 'n/a')
+
 		except DataStoreError as e:
 			print(e)
 			raise CommandError()

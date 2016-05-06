@@ -11,12 +11,12 @@ class OptionTreeError(Exception):
 
 
 class OptionTree(object):
-	version = '1.0'
+	version = '1.1'
 
-	def __init__(self):
-		self._root = None
-		self._stack = []
-
+	def __init__(self, prog_version):
+		self._root 		= None
+		self._stack 		= []
+		self._prog_version 	= prog_version
 
 
 	def add_node(self, node):
@@ -58,11 +58,18 @@ class OptionTree(object):
 
 
 	def __getstate__(self):
-		return self._root
+		return [self.version, self._root, self._prog_version]
 
 
-	def __setstate__(self, root):
-		self._root = root
+	def __setstate__(self, data):
+		if type(data) == list:
+			# check version
+			self._root = data[1]
+			self._prog_version = data[2]
+		else:						# older version (1.0)
+			self._root = data
+			self.version = '1.0'
+			self._prog_version = None
 
 
 	def print_stack(self):
@@ -70,5 +77,11 @@ class OptionTree(object):
 		print(', '.join([e.name for e in reversed(self._stack)]))
 
 
+
+	def get_prog_version(self):
+		return self._prog_version
+
+
 	root = property(get_root)
+	prog_version = property(get_prog_version)
 

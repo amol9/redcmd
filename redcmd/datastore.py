@@ -1,11 +1,15 @@
 from os import mkdir, walk, remove
 from os.path import exists, join as joinpath
 from pickle import PicklingError, UnpicklingError
+from collections import namedtuple
 
 from redlib.api.py23 import pickledump, pickleload
 
 
 from . import const
+
+
+AutocompInfo = namedtuple('AutocompInfo', ['command', 'access', 'version'])
 
 
 class DataStoreError(Exception):
@@ -17,7 +21,6 @@ class DataStoreError(Exception):
 
 
 class DataStore:
-	ot_version = '1.0'
 	pickle_protocol = 2
 
 	def __init__(self):
@@ -47,14 +50,14 @@ class DataStore:
 
 		with open(joinpath(const.autocomp_dir, cmdname), 'wb') as f:
 			try:
-				pickledump([self.ot_version, ot], f, protocol=self.pickle_protocol, fix_imports=True)
+				pickledump(ot, f, protocol=self.pickle_protocol, fix_imports=True)
 			except PicklingError as e:
 				print(e)
 				raise DataStoreError('unable to save option tree')
 
 
-	def load_optiontree(self, cmdname):
-		filepath = joinpath(const.autocomp_dir, cmdname)
+	def load_optiontree(self, cmdname, filepath=None):
+		filepath = filepath or joinpath(const.autocomp_dir, cmdname)
 
 		if not exists(filepath):
 			filepath = joinpath(const.root_autocomp_dir, cmdname)
@@ -64,14 +67,17 @@ class DataStore:
 		try:
 			with open(filepath, 'rb') as f:
 				try:
-					data = pickleload(f,fix_imports=True)
+					data = pickleload(f, fix_imports=True)
 				except UnpicklingError as e:
 					log.error(str(e))
 
-				ot_version = data[0]
-				if ot_version > self.ot_version:
-					raise DataStoreError('cannot load greater ot_version, %s > %s'%(version, self.version))
-				return data[1]
+				#ot_version = data[0]
+				#if ot_version > self.ot_version:
+				#	raise DataStoreError('cannot load greater ot_version, %s > %s'%(version, self.version))
+				if type(data) == list: 	# older version (1.0)
+					return data[1]
+				else:
+					return data
 		except IOError as e:
 			raise DataStoreError(e)
 
@@ -100,19 +106,26 @@ class DataStore:
 			raise DataStoreError('%s not found'%filepath, reason=DataStoreError.FILE_NOT_FOUND)
 
 
-	def list_optiontree(self):
-		commands = {}
+	def list_autocomp_commands(self):
+		autocomp_list = []
+
+		def add_to_list(cmd, access, dirpath):
+			version = self.load_optiontree(cmd, filepath=joinpath(dirpath, cmd)).prog_version	# exc
+
+			i = (filter(lambda i : i.command == cmd, autocomp_list) or [None])[0]
+			if i is None:
+				autocomp_list.append(AutocompInfo(cmd, [access], [version]))
+			else:
+				i.access.append(access)
+				i.version.append(version)
 
 		for _, _, files in walk(const.autocomp_dir):
 			for f in files:
-				commands[f] = ['user']
+				add_to_list(f, 'user', const.autocomp_dir)
 
-		for _, _, files in walk(joinpath(const.root_autocomp_dir)):
+		for _, _, files in walk(const.root_autocomp_dir):
 			for f in files:
-				if commands.get(f, None) is not None:
-					commands[f].append('all')
-				else:
-					commands[f] = ['all']
+				add_to_list(f, 'all', const.root_autocomp_dir)
 
-		return commands
+		return autocomp_list
 

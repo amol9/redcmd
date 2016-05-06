@@ -33,7 +33,7 @@ class CommandHelpFormatter(HelpFormatter):
 
 		optionals = []
 		positionals = []
-		col1 = 15
+		col1 = 0
 
 		for action in actions:
 			if action.option_strings:
@@ -44,9 +44,9 @@ class CommandHelpFormatter(HelpFormatter):
 				positionals.append(action)
 				names_len = 0
 				if action.__class__ == _SubParsersAction:
-					names_len = max([len(n) for n in action.choices.keys()])
+					names_len = max([len(n) for n in action.choices.keys()]) + 2
 				else:
-					names_len = len(action.dest)
+					names_len = len(action.dest) + 2
 				col1 = names_len if names_len > col1 else col1
 
 		terminal_width, _ = get_terminal_size()
@@ -106,16 +106,11 @@ class CommandHelpFormatter(HelpFormatter):
 
 			return out
 
-		for o in optionals:
-			name = ', '.join(o.option_strings)
-			is_action = True if issubclass(o.__class__, Action) else False
-			hidden = getattr(o, const.action_hidden_attr, False) or False
-
-			help += format_action(name, o.help, o.choices, o.default, is_action, hidden)
-			usage += '[%s] '%name
-
+		pos_usage = ''
+		has_subcmd = False
 		for p in positionals:
 			if p.__class__ == _SubParsersAction:
+				has_subcmd = True
 				help += os.linesep + 'subcommands:' + os.linesep
 				for subcmd in p.choices.keys():
 					help += format_action(subcmd, p.choices[subcmd].description, None, None, False, False)
@@ -125,7 +120,21 @@ class CommandHelpFormatter(HelpFormatter):
 			else:
 				hidden = getattr(p, const.action_hidden_attr, False) or False
 				help += format_action(p.dest, p.help, p.choices, p.default, False, hidden)
-				usage += '%s '%p.dest
+				pos_usage += '%s '%p.dest
+
+		if len(optionals) > 0:
+			usage += '[options] ' if not has_subcmd else ''
+			help += os.linesep + 'options:' + os.linesep
+
+		usage += pos_usage
+
+		for o in optionals:
+			name = ', '.join(o.option_strings)
+			is_action = True if issubclass(o.__class__, Action) else False
+			hidden = getattr(o, const.action_hidden_attr, False) or False
+
+			help += format_action(name, o.help, o.choices, o.default, is_action, hidden)
+
 
 		if self._extrahelp is not None:
 			help += os.linesep + trim_docstring(self._extrahelp)

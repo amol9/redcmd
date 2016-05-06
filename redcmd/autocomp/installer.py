@@ -53,7 +53,7 @@ class Installer:
 	def setup_cmd(self, cmdname, _to_hyphen=False):
 		try:
 			command_collection = CommandCollection()
-			command_collection.set_details(prog=cmdname, _to_hyphen=_to_hyphen)
+			#command_collection.set_details(prog=cmdname, _to_hyphen=_to_hyphen)
 
 			subcmd_cls = RedcmdInternalSubcommand if cmdname == 'redcmd' else None
 			command_collection.make_option_tree(subcmd_cls=subcmd_cls, command_name=cmdname)

@@ -66,6 +66,7 @@ class _CommandCollection(object):
 		self._cmdparser.prog 		= prog
 		self._cmdparser.description 	= description
 		self._to_hyphen 		= _to_hyphen
+		self._version			= version
 
 		if version is not None:
 			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')
@@ -75,17 +76,21 @@ class _CommandCollection(object):
 		return self._cmdparser.prog
 
 
+	def cmdparser_populated(self):
+		return self._cmdparser._subparsers is not None or any([added_arg(a) for a in self._cmdparser._actions])
+
+
 	def make_option_tree(self, command_name=None, subcmd_cls=None, maincmd_cls=None, save=True):
 		command_name = self._cmdparser.prog if command_name is None else command_name
 
 		if command_name is None:
 			raise CommandCollectionError('cannot create option tree without a command name')
 
-		self._optiontree = OptionTree()
+		self._optiontree = OptionTree(self._version)
 		self._optiontree.add_node(Node(command_name))
 
 		# if cmdparser is aleady populated, add from it
-		if self._cmdparser._subparsers is not None or any([added_arg(a) for a in self._cmdparser._actions]):
+		if self.cmdparser_populated():
 			self.make_ot_from_cmdparser(self._cmdparser)
 		else:
 			self.add_commands(subcmd_cls=subcmd_cls, maincmd_cls=maincmd_cls)
@@ -123,7 +128,10 @@ class _CommandCollection(object):
 
 	
 	def add_commands(self, maincmd_cls=None, subcmd_cls=None):			# to be called from class CommandLine to add
-		maincmd_cls = Maincommand if maincmd_cls is None else maincmd_cls	# subclass members of Maincommand and Subcommand
+		if self.cmdparser_populated():						# subclass members of Maincommand and Subcommand
+			return
+
+		maincmd_cls = Maincommand if maincmd_cls is None else maincmd_cls	
 		subcmd_cls = Subcommand if subcmd_cls is None else subcmd_cls
 
 		self.add_maincommand_class(maincmd_cls)
@@ -135,49 +143,48 @@ class _CommandCollection(object):
 		self.add_subcommand_classes(InternalSubcommand, self._internal_cmdparser)
 
 
-	def add_subcommand_classes(self, cls, parser, parent_add_args=None):
+	def add_subcommand_classes(self, cls, parser, parent_add_args=None, parent_subcmds=[]):
 		subcmd_added = False
 		if getattr(cls, '__subclasses__', None) is not None:
 			for subcmd_cls in cls.__subclasses__():
-				subcmd_added |= self.add_subcommand_group(subcmd_cls, parser, parent_add_args=parent_add_args)
-		return subcmd_added
+				#subcmd_added |= self.add_subcommand_group(subcmd_cls, parser, parent_add_args=parent_add_args)
+				#return subcmd_added
+				#def add_subcommand_group(self, subcmd_cls, parser, parent_add_args=None):
+				#subcmd_added = False
+				for member_name, member_val in inspect.getmembers(subcmd_cls, predicate=\
+				lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
 
+					if True or inspect.ismethod(member_val):
+						func = member_val
+						if getattr(func, self._subcmd_attr, None) is not None:
+							if func.__name__ in parent_subcmds:
+								continue	
 
-	def add_subcommand_group(self, subcmd_cls, parser, parent_add_args=None):
-		subcmd_added = False
-		for member_name, member_val in inspect.getmembers(subcmd_cls, predicate=\
-		lambda x : inspect.ismethod(x) or inspect.isfunction(x)):
+							if self._optiontree is not None:
+								self._optiontree.add_node(Node(self.utoh(func.__name__), subcmd=True))
 
-			if True or inspect.ismethod(member_val):
-				func = member_val
-				if getattr(func, self._subcmd_attr, None) is not None:
-					if not func.__name__ in subcmd_cls.__dict__.keys():
-						continue
+							add_args = getattr(func, const.add_attr, None)
+							if add_args is None:
+								if parent_add_args is not None:
+									add_args = copy(parent_add_args)
+									add_args.add_skip = False
+									func.__dict__[const.add_attr] = add_args
+							else:
+								if parent_add_args is not None:
+									add_args.extend(parent_add_args.args)
 
-					if self._optiontree is not None:
-						self._optiontree.add_node(Node(self.utoh(func.__name__), subcmd=True))
+							subcmd_parser = self.add_subcommand(
+										func,
+										cmd_cls=subcmd_cls,
+										parent=parser,
+										group_name=subcmd_cls.__name__.lower())
+							subcmd_added = True
 
-					add_args = getattr(func, const.add_attr, None)
-					if add_args is None:
-						if parent_add_args is not None:
-							add_args = copy(parent_add_args)
-							add_args.add_skip = False
-							func.__dict__[const.add_attr] = add_args
-					else:
-						if parent_add_args is not None:
-							add_args.extend(parent_add_args.args)
+							self.add_subcommand_classes(subcmd_cls, subcmd_parser, parent_add_args=add_args,
+									parent_subcmds=parent_subcmds + [func.__name__])
 
-					subcmd_parser = self.add_subcommand(
-								func,
-								cmd_cls=subcmd_cls,
-								parent=parser,
-								group_name=subcmd_cls.__name__.lower())
-					subcmd_added = True
-
-					self.add_subcommand_classes(subcmd_cls, subcmd_parser, parent_add_args=add_args)
-
-					if self._optiontree is not None:
-						self._optiontree.pop()
+							if self._optiontree is not None:
+								self._optiontree.pop()
 
 		return subcmd_added
 		

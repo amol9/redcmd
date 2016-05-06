@@ -16,7 +16,8 @@ class CommandLine(object):
 	'Command line handler.'
 
 	def __init__(self, prog=const.prog, description=const.description, version=const.version, 
-			default_subcommand=None, namespace=None, _to_hyphen=False, moves=False):
+			default_subcommand=None, namespace=None, _to_hyphen=False, moves=False,
+			update_autocomplete=True, update_autocomplete_cb=None):
 
 		self._command_collection = CommandCollection()
 		self._command_collection.set_details(prog=prog, description=description, version=version, _to_hyphen=_to_hyphen)
@@ -24,8 +25,12 @@ class CommandLine(object):
 		self._default_subcommand = default_subcommand
 		self._namespace = namespace
 		self._prog = prog
+		self._version = version
 
 		self._moves = moves
+
+		self._update_autocomplete = update_autocomplete
+		self._update_autocomplete_cb = update_autocomplete_cb
 
 	
 	def execute(self, args=None, namespace=None):
@@ -56,10 +61,26 @@ class CommandLine(object):
 				if move_collection.is_moved(args):
 					args = move_collection.move(args)
 
+			if self._update_autocomplete:
+				autocomp_version = self.get_autocomp_version()
+				if autocomp_version is None or autocomp_version < self._version:
+					self._command_collection.make_option_tree()
+					if self._update_autocomplete_cb is not None:
+						self._update_autocomplete_cb()
+
 			self._command_collection.execute(args, namespace)
 		except CommandCollectionError as e:
 			raise CommandLineError(e)
 
+
+	def get_autocomp_version(self):
+		ds = DataStore()
+
+		try:
+			ot = ds.load_optiontree(self._prog)
+			return ot.prog_version
+		except DataStoreError:
+			return None
 
 	def execute_internal(self, args=None, namespace=None):
 		try:
@@ -77,14 +98,14 @@ class CommandLine(object):
 		self._default_subcommand = name
 
 
-	'''def setup_autocomplete(self, command_name=None):
+	def setup_autocomplete(self, command_name=None):
 		installer = Installer()
 		command_name = command_name if command_name is not None else self._prog
 
 		try:
 			installer.setup_cmd(command_name)
 		except InstallError as e:
-			print(e)
+			raise CommandLineError(str(e))
 
 
 	def remove_autocomplete(self, command_name=None):
@@ -96,5 +117,5 @@ class CommandLine(object):
 		try:
 			installer.remove_cmd(command_name)
 		except InstallError as e:
-			print(e)'''
+			print(e)
 
