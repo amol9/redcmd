@@ -64,7 +64,12 @@ class CommandLine(object):
 			if self._update_autocomplete:
 				autocomp_version = self.get_autocomp_version()
 				if autocomp_version is None or autocomp_version < self._version:
-					self._command_collection.make_option_tree()
+					if sys.argv[0].endswith('redcmd'):
+						self.remove_base()
+
+					#self._command_collection.make_option_tree()
+					self.setup_autocomplete()
+
 					if self._update_autocomplete_cb is not None:
 						self._update_autocomplete_cb()
 
@@ -99,10 +104,10 @@ class CommandLine(object):
 
 
 	def setup_autocomplete(self, command_name=None):
-		installer = Installer()
 		command_name = command_name if command_name is not None else self._prog
 
 		try:
+			installer = Installer()
 			installer.setup_cmd(command_name)
 		except InstallError as e:
 			raise CommandLineError(str(e))
@@ -119,3 +124,10 @@ class CommandLine(object):
 		except InstallError as e:
 			print(e)
 
+
+	def remove_base(self):
+		try:
+			installer = Installer()
+			installer.remove_base()
+		except InstallError as e:
+			print(e)	

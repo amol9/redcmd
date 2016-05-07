@@ -5,8 +5,6 @@ import platform
 import sys
 from setuptools import setup, find_packages
 
-from rc_setup import setup_autocomp, remove_base
-
 from redcmd.version import __version__
 
 
@@ -36,8 +34,4 @@ setup(
 					'Topic :: Software Development :: Libraries :: Application Frameworks'
 				]
 )
-
-
-remove_base()
-setup_autocomp('redcmd.client.all', 'redcmd', _to_hyphen=True)
 

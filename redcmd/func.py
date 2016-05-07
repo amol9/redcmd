@@ -46,14 +46,15 @@ def execute_commandline(**kwargs):
 	try:
 		cl.execute()
 	except CommandLineError as e:
-		print(e)
+		if str(e) != '':
+			print(e)
 		sys.exit(const.commandline_exc_exit_code)
 
 	sys.exit(0)
 
 
 def remove_base():
-	print('removing redcmd autocomplete support...')
+	#print('removing redcmd autocomplete support...')
 	try:
 		installer = Installer()
 		installer.remove_base()

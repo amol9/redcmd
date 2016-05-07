@@ -21,7 +21,7 @@ class Installer:
 		try:
 			self._shell_script_installer = get_shell_script_installer()
 		except ShellScriptInstallError as e:
-			raise InstallError(e)
+			raise InstallError(str(e))
 
 
 	def setup_base(self):
