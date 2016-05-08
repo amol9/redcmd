@@ -108,7 +108,8 @@ class _CommandCollection(object):
 				self._optiontree.add_node(Node(subcmd, subcmd=True))
 				if subparser._subparsers is None:
 					for action in subparser._actions:
-						if action.dest == 'help':
+						hidden = getattr(action, const.action_hidden_attr, False)
+						if action.dest == 'help' or hidden:
 							continue
 						names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
 						filter = getattr(action, const.action_filter_attr, None)
@@ -119,7 +120,8 @@ class _CommandCollection(object):
 
 		else:
 			for action in parser._actions:
-				if added_arg(action):
+				hidden = getattr(action, const.action_hidden_attr, False)
+				if added_arg(action) and not hidden:
 					names = action.option_strings if len(action.option_strings) > 0 else [action.dest]
 					filter = getattr(action, const.action_filter_attr, None)
 					self.add_to_optiontree(names, action.default, action.choices, filter)
