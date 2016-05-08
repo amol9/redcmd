@@ -1,5 +1,7 @@
 import sys
 
+from redlib.api.misc import cmp_version
+
 from . import const
 from .client.autocomp_subcommand import *
 from .command_collection import CommandCollection
@@ -48,7 +50,7 @@ class CommandLine(object):
 			raise CommandLineError('error creating command line structure')
 
 		if self._default_subcommand is not None and len(sys.argv) == 1 :
-			sys.argv.append(self._default_subcommand)
+			sys.argv.extend(self._default_subcommand.split())
 
 		if namespace is None:
 			namespace = self._namespace
@@ -63,11 +65,11 @@ class CommandLine(object):
 
 			if self._update_autocomplete:
 				autocomp_version = self.get_autocomp_version()
-				if autocomp_version is None or autocomp_version < self._version:
+				if autocomp_version is None or cmp_version(autocomp_version, self._version) < 0:
 					if sys.argv[0].endswith('redcmd'):
 						self.remove_base()
+						print('\n' + 'Installing new base scripts...')
 
-					#self._command_collection.make_option_tree()
 					self.setup_autocomplete()
 
 					if self._update_autocomplete_cb is not None:

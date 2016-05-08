@@ -20,7 +20,7 @@ setup(
 	url			= 'http://pypi.python.org/pypi/redcmd/',
 	packages		= find_packages(),
 	include_package_data	= True,
-	scripts			= ['ez_setup.py', 'rc_setup.py'],
+	scripts			= ['ez_setup.py'],
 	install_requires	= ['redlib>=1.1.4', 'zope.interface'],
 	entry_points		= entry_points,
 	classifiers		= [
