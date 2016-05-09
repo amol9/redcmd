@@ -22,3 +22,11 @@ def get_shell_script_installer():
 	else:
 		raise ShellScriptInstallError('platform not supported')
 
+
+def platform_supported():
+	try:
+		get_shell_script_installer()
+	except ShellScriptInstallError:
+		return False
+	return True
+

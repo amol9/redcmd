@@ -9,6 +9,7 @@ from .autocomp.installer import Installer, InstallError
 from .exc import CommandCollectionError, CommandLineError
 from .client.redcmd_internal_subcommand import RedcmdInternalSubcommand
 from .move_collection import MoveCollection
+from .autocomp.shell_script_installer_factory import platform_supported
 
 
 __all__ = ['CommandLine']
@@ -63,14 +64,14 @@ class CommandLine(object):
 				if move_collection.is_moved(args):
 					args = move_collection.move(args)
 
-			if self._update_autocomplete:
+			if self._update_autocomplete and platform_supported():
 				autocomp_version = self.get_autocomp_version()
 				if autocomp_version is None or cmp_version(autocomp_version, self._version) < 0:
 					if sys.argv[0].endswith('redcmd'):
-						self.remove_base()
+						self.remove_base(exc=False)
 						print('\n' + 'Installing new base scripts...')
 
-					self.setup_autocomplete()
+					self.setup_autocomplete(exc=False)
 
 					if self._update_autocomplete_cb is not None:
 						self._update_autocomplete_cb()
@@ -105,14 +106,15 @@ class CommandLine(object):
 		self._default_subcommand = name
 
 
-	def setup_autocomplete(self, command_name=None):
+	def setup_autocomplete(self, command_name=None, exc=True):
 		command_name = command_name if command_name is not None else self._prog
 
 		try:
 			installer = Installer()
 			installer.setup_cmd(command_name)
 		except InstallError as e:
-			raise CommandLineError(str(e))
+			if exc:
+				raise CommandLineError(str(e))
 
 
 	def remove_autocomplete(self, command_name=None):
@@ -127,9 +129,10 @@ class CommandLine(object):
 			print(e)
 
 
-	def remove_base(self):
+	def remove_base(self, exc=True):
 		try:
 			installer = Installer()
 			installer.remove_base()
 		except InstallError as e:
-			print(e)	
+			if exc:
+				print(e)	
