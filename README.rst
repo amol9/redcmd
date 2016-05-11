@@ -2,7 +2,7 @@
 redcmd
 ======
 
-A simple library to handle command line of an application with support for subcommands, as well as, automatic help extraction from doc strings.
+A simple library to handle command line of an application with support for subcommands, as well as, automatic help text extraction from doc strings.
 
 
 Supported platforms
@@ -18,14 +18,14 @@ Features
 * Decorator as well as subclass based command addition. 
 * Custom help text formatter which improves upon the rather lousy default formatter.
 * Automatic help text extraction from doc strings.
-* Autocomplete support.
+* Autocomplete support (Linux only).
 
 
 Usage
 =====
 A simple case of just the main command (without any subcommands)::
 
-        from redcmd.api import maincmd, commandline_execute
+        from redcmd.api import maincmd, execute_commandline
 
         @maincmd
         def main(a, b):
@@ -42,7 +42,7 @@ A simple case of just the main command (without any subcommands)::
                         print('bad integer')
                         raise CommandError()
 
-        commandline_execute() 
+        execute_commandline() 
 
 See examples directory in code for decorator and subclass based command handling.
 [https://github.com/amol9/redcmd/tree/master/examples]
@@ -50,6 +50,7 @@ See examples directory in code for decorator and subclass based command handling
 
 Download
 ========
+
 * PyPI: http://pypi.python.org/pypi/redcmd
 * Source: https://github.com/amol9/redcmd
 

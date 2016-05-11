@@ -1,2 +1,3 @@
 include redcmd/autocomp/scripts/*.*
+recursive-exclude redcmd/test *
 
