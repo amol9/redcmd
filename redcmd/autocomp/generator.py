@@ -1,6 +1,8 @@
 import re
+import shlex
 
 from .filter import apply_filters
+from .completer.base import get_completions
 from ..datastore import DataStore, DataStoreError
 
 
@@ -18,6 +20,12 @@ class Generator:
 			raise GenError('invalid command line: %s'%self._cmdline)
 
 		self._optiontree = None
+                self.filter_cmdline()
+
+
+        def filter_cmdline(self):
+                if self._cmdline.startswith('./'):
+                    self._cmdline = self._cmdline[2:]
 
 	
 	def load(self):
@@ -95,26 +103,67 @@ class Generator:
 		opt_var = None		# last seen optional arg (node)
 		pos_count = 0		# no. of positional arguments found (except last word)
 		opt_seen = []		# optional args seen (so we don't suggest those again in autocomplete)
-		for w in words[idx + 1 : -1]:
-			if opt_val:
-				opt_val = False
-			else:
-				opt_var = get_opt(w)
-				opt_seen.append(opt_var)
 
-				if opt_var is not None:
-					opt_val = True
-				else:
-					pos_count += 1
+                w_started_with_qt = False
+                w_ended_with_qt = False
+                w_ended_with_bs = False
+
+                pos_val = False         # True: positional arg value continued
+                last_term = ''          # last argument full value (with whitespaces, if any)
+                is_quote = lambda c : c in ['"', "'"]
+
+		for w in words[idx + 1 : -1]:
+                        w_started_with_qt = (w[0] == '"' and w[-1] != '"') or (w[0] == "'" and w[-1] != "'")
+                        w_ended_with_qt = is_quote(w[-1])
+                        w_ended_with_bs = w[-1] == '\\'
+
+			if opt_val:
+                            last_term += ' %s'%w
+                            if not w_started_with_qt or w_ended_with_qt:
+				opt_val = False
+                                last_term = ''
+			else:
+                                if pos_val:
+                                    last_term += ' %s'%w
+                                    if w_ended_with_qt:
+                                        pos_val = False
+                                        pos_count += 1
+                                        last_term = ''
+
+                                else:
+                                    opt_var = get_opt(w)
+                                    opt_seen.append(opt_var)
+
+                                    if opt_var is not None:
+                                            opt_val = True
+                                            last_term = w
+                                    else:
+                                            #pos_count += 1
+                                            last_term = w
+                                            if w_started_with_qt:
+                                                pos_val = True
+                                            else:
+                                                pos_count += 1
+
 			if pos_count > len(positionals):
 				return []
 
+                if len(last_term) > 1:
+                    if is_quote(last_term[-1]):
+                        return []   # nothing to complete, since, the user has ended the value with a quote
+
+                    if is_quote(last_term[0]):
+                        last_term = last_term[1:] + ' ' + lastword
+
+                else:
+                    last_term = lastword
+
 		if opt_val:				# last word is an incomplete optional arg value
-			return sorted(apply_filters(lastword, opt_var.filters))
+			return sorted(get_completions(last_term, opt_var.filters))
 
 		elif pos_count < len(positionals):	# last word could be an incomplete positional arg value
 			pos_var = positionals[pos_count]
-			return sorted(apply_filters(lastword, pos_var.filters))
+			return sorted(get_completions(last_term, pos_var.filters))
 
 		else:					# last word is an incomplete optional arg name
 			opt_pairs = []

@@ -328,7 +328,7 @@ class _CommandCollection(object):
 
 		for arg in argspec.args:
 			arg_index = argspec.args.index(arg)
-			default = names = choices = nargs = action = filter = None
+			default = names = choices = nargs = action = filter = completer = None
 			hidden = False
 
 			if arg_index >= defaults_offset:		# argument has a default value
@@ -347,6 +347,7 @@ class _CommandCollection(object):
 					default = arg_default.default
 					nargs 	= arg_default.nargs
 					hidden	= arg_default.hidden
+                                        completer = arg_default.completer
 
 					if arg_default.pos:
 						if default is not None:
@@ -391,14 +392,14 @@ class _CommandCollection(object):
 				names = [self.utoh(n) for n in names]
 
 			action = parser.add_argument(*names, **kwargs)
-			setattr(action, const.action_filter_attr, filter)
+			setattr(action, const.action_filter_attr, completer)
 			setattr(action, const.action_hidden_attr, hidden)
 
 			if not hidden:
 				if not common:
-					self.add_to_optiontree(names, default, choices, filter)
+					self.add_to_optiontree(names, default, choices, completer)
 				else:
-					parser.common_args.add_child(self.make_ot_node(names, default, choices, filter))
+					parser.common_args.add_child(self.make_ot_node(names, default, choices, completer))
 		# end: for loop
 			
 		longhelp = help.get('long', None)	
@@ -412,21 +413,21 @@ class _CommandCollection(object):
 			parser.set_defaults(cmd_func=CmdFunc(cmd_cls, func, add=add_arg_funcs))	# set class and function to be called for execution
 
 
-	def add_to_optiontree(self, names, default, choices, filter):
+	def add_to_optiontree(self, names, default, choices, completer):
 		if self._optiontree is None:
 			return
 
-		self._optiontree.add_node(self.make_ot_node(names, default, choices, filter))
+		self._optiontree.add_node(self.make_ot_node(names, default, choices, completer))
 		self._optiontree.pop()
 
 
-	def make_ot_node(self, names, default, choices, filter):
+	def make_ot_node(self, names, default, choices, completer):
 		name = self.utoh(names[0])
 		alias = self.utoh(names[1]) if len(names) > 1 else None
 
 		filters = []
-		if filter is not None:
-			filters.append(filter)
+		if completer is not None:
+			filters.append(completer)
 
 		if choices is not None:
 			filters.append(ListFilter([str(c) for c in choices]))

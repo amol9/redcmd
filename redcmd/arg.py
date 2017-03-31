@@ -9,7 +9,7 @@ __all__ = ['Arg', 'PathArg', 'make_filter', 'EnumArg', 'IntArg', 'FloatArg', 'Nu
 
 
 class Arg(object):
-	def __init__(self, pos=True, opt=False, choices=None, default=None, nargs=None, short=None, hidden=False):
+	def __init__(self, pos=True, opt=False, choices=None, default=None, nargs=None, short=None, hidden=False, completer=None):
 		if opt:
 			pos = False
 
@@ -20,6 +20,7 @@ class Arg(object):
 		self.nargs 	= nargs
 		self.short	= short
 		self.hidden	= hidden
+                self.completer  = completer
 
 
 	def convert(self, value, name='value'):
