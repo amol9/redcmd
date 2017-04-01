@@ -8,8 +8,11 @@ function _redcmd_autocomp_function()
 		comp_word=" $comp_word"
 	fi
 
+	IFS='
+	'
 	options=($(redcmd autocomp gen "${comp_line}" "$comp_word" 2>/dev/null))
-	
+	unset IFS
+
 	if [[ ${#options[@]} -gt 0 ]] && [[ ${options[0]} =~ \/ ]]; then
 	      compopt -o filenames
 	fi

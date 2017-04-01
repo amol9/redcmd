@@ -12,9 +12,9 @@ class GenError(Exception):
 
 class Generator:
 
-	def __init__(self, cmdline, lastword):
+	def __init__(self, cmdline, last_term):
 		self._cmdline = cmdline
-		self._lastword = lastword
+		self._last_term = last_term
 
 		if self._cmdline is None or len(self._cmdline) < 1:
 			raise GenError('invalid command line: %s'%self._cmdline)
@@ -38,11 +38,11 @@ class Generator:
 
 
 	def gen(self):
-		words = self._cmdline.split()
-		lastword = self._lastword
+		words               = self._cmdline.split()
+		last_term           = self._last_term
+                last_term_n_words   = len(last_term.split())
 
-		if words[-1] != lastword:
-			words.append(lastword)
+                del words[-last_term_n_words : ]
 
 		if words[0] != self._optiontree.root.name:
 			raise GenError('command name: %s not valid for auto completion'%words[0])
@@ -85,7 +85,7 @@ class Generator:
 			if len(words) - (idx + 1) > 1:
 				raise GenError('bad subcommand name: %s'%words[idx + 1])
 			else:
-				return sorted([n.name for n in node.children if n.name.startswith(lastword)])
+				return sorted([n.name for n in node.children if n.name.startswith(last_term)])
 
 		optionals = [n for n in node.children if n.name.startswith('-')]
 		positionals = [n for n in node.children if not n.name.startswith('-')]
@@ -104,59 +104,25 @@ class Generator:
 		pos_count = 0		# no. of positional arguments found (except last word)
 		opt_seen = []		# optional args seen (so we don't suggest those again in autocomplete)
 
-                w_started_with_qt = False
-                w_ended_with_qt = False
-                w_ended_with_bs = False
-
-                pos_val = False         # True: positional arg value continued
-                last_term = ''          # last argument full value (with whitespaces, if any)
-                is_quote = lambda c : c in ['"', "'"]
-
-		for w in words[idx + 1 : -1]:
-                        w_started_with_qt = (w[0] == '"' and w[-1] != '"') or (w[0] == "'" and w[-1] != "'")
-                        w_ended_with_qt = is_quote(w[-1])
-                        w_ended_with_bs = w[-1] == '\\'
-
+		for w in words[idx + 1 : ]:
 			if opt_val:
-                            last_term += ' %s'%w
-                            if not w_started_with_qt or w_ended_with_qt:
-				opt_val = False
-                                last_term = ''
+			    opt_val = False
 			else:
-                                if pos_val:
-                                    last_term += ' %s'%w
-                                    if w_ended_with_qt:
-                                        pos_val = False
-                                        pos_count += 1
-                                        last_term = ''
+                                opt_var = get_opt(w)
+                                opt_seen.append(opt_var)
 
+                                if opt_var is not None:
+                                        opt_val = True
                                 else:
-                                    opt_var = get_opt(w)
-                                    opt_seen.append(opt_var)
-
-                                    if opt_var is not None:
-                                            opt_val = True
-                                            last_term = w
-                                    else:
-                                            #pos_count += 1
-                                            last_term = w
-                                            if w_started_with_qt:
-                                                pos_val = True
-                                            else:
-                                                pos_count += 1
+                                        pos_count += 1
 
 			if pos_count > len(positionals):
 				return []
 
+                is_quote = lambda c : c in ['"', "'"]
                 if len(last_term) > 1:
                     if is_quote(last_term[-1]):
                         return []   # nothing to complete, since, the user has ended the value with a quote
-
-                    if is_quote(last_term[0]):
-                        last_term = last_term[1:] + ' ' + lastword
-
-                else:
-                    last_term = lastword
 
 		if opt_val:				# last word is an incomplete optional arg value
 			return sorted(get_completions(last_term, opt_var.filters))
@@ -168,8 +134,8 @@ class Generator:
 		else:					# last word is an incomplete optional arg name
 			opt_pairs = []
 			for opt in sorted([o for o in optionals if o not in opt_seen], key=lambda n : n.name):
-				name = opt.name if opt.name.startswith(lastword) else None
-				alias = opt.alias if opt.alias.startswith(lastword) else None
+				name = opt.name if opt.name.startswith(last_term) else None
+				alias = opt.alias if opt.alias.startswith(last_term) else None
 
 				if name is not None or alias is not None:
 					opt_pairs.append((name, alias))

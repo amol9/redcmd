@@ -6,15 +6,8 @@ from redcmd.api import maincmd, CommandLine, completer as cmpl, arg, CommandLine
 def main(term=arg.Arg(completer=cmpl.GoogleSuggest())):
 	'''List Google autocomplete suggestions.
         term: search term
-
-	This is where extra help text goes.
-	It can be more than one line.'''
-
-	try:
-		print('sum: %d'%(int(a) + int(b)))
-	except ValueError:
-		print('bad integer')
-		raise CommandError()
+	'''
+        print('search term: %s'%term)
 
 
 cmdline = CommandLine(prog='google_suggest.py')

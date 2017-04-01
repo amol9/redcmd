@@ -15,20 +15,6 @@ from .installer_const import bash
 
 @implementer(IShellScriptInstaller)
 class BASHScriptInstaller:
-        '''
-	profile_d_file 		= '/etc/profile.d/redcmd_autocomp.sh'
-	bash_completion_d_dir	= '/etc/bash_completion.d'
-	user_bashrc_file	= joinpath(const.user_home, '.bashrc')
-	system_bashrc_file	= '/etc/bash.bashrc'
-
-	id_prefix		= '__redcmd_autocomp_'
-	user_script_file	= joinpath(const.script_dir, 'autocomp_func.sh')
-	user_cmdlist_file	= joinpath(const.script_dir, 'autocomp_list.sh')
-
-	script_template_file	= joinpath(dirname(__file__), 'scripts', 'bash_autocomp_function.sh')
-	template_func_name	= '_redcmd_autocomp_function'
-	shebang			= '#!/bin/bash'
-        '''
 
 	def __init__(self):
 		dstore = DataStore()
