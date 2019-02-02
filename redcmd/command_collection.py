@@ -63,10 +63,13 @@ class _CommandCollection(object):
 
 
 	def set_details(self, prog=None, description=None, version=None, _to_hyphen=False):
-		self._cmdparser.prog 		= prog
-		self._cmdparser.description 	= description
-		self._to_hyphen 		= _to_hyphen
-		self._version			= version
+                if prog is not None:
+		        self._cmdparser.prog = prog 
+                if description is not None:
+		        self._cmdparser.description = description
+                if version is not None:
+        		self._version = version
+		self._to_hyphen = _to_hyphen
 
 		if version is not None:
 			self._cmdparser.add_argument('-v', '--version', action='version', version=version, help='print program version')

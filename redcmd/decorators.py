@@ -12,7 +12,7 @@ from .add_args import AddArgs
 __all__ = ['subcmd', 'maincmd', 'moved']
 
 
-def subcmd(func=None, add=None, parent=None, add_rec=False, add_skip=False):
+def subcmd(func=None, add=None, parent=None, add_rec=False, add_skip=False, undsco_to_hyphen=False):
 	def subcmd_dec(func):
 		if add is not None or add_rec or add_skip:
 			func.__dict__[const.add_attr] = AddArgs(add, add_rec=add_rec, add_skip=add_skip)
@@ -22,6 +22,7 @@ def subcmd(func=None, add=None, parent=None, add_rec=False, add_skip=False):
 			return func
 
 		command_collection = CommandCollection()
+                command_collection.set_details(_to_hyphen=undsco_to_hyphen)
 		try:
 			command_collection.add_subcommand(func, parent=parent)
 		except (SubcommandError, CommandCollectionError) as e:
