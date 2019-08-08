@@ -7,7 +7,7 @@ from .. import const
 from ..command_collection import CommandCollection, CommandCollectionError
 from .shell_script_installer_factory import get_shell_script_installer
 from ..datastore import DataStore, DataStoreError
-from ..client.redcmd_internal_subcommand import RedcmdInternalSubcommand
+from ..subcommand import InternalSubcommand
 from .shell_script_installer import ShellScriptInstallError
 
 
@@ -55,7 +55,7 @@ class Installer:
 			command_collection = CommandCollection()
 			#command_collection.set_details(prog=cmdname, _to_hyphen=_to_hyphen)
 
-			subcmd_cls = RedcmdInternalSubcommand if cmdname == 'redcmd' else None
+			subcmd_cls = InternalSubcommand if cmdname == 'redcmd' else None
 			command_collection.make_option_tree(subcmd_cls=subcmd_cls, command_name=cmdname)
 		except CommandCollectionError as e:
 			raise InstallError(e)

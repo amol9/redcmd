@@ -22,7 +22,7 @@ def subcmd(func=None, add=None, parent=None, add_rec=False, add_skip=False, unds
 			return func
 
 		command_collection = CommandCollection()
-                command_collection.set_details(_to_hyphen=undsco_to_hyphen)
+		command_collection.set_details(_to_hyphen=undsco_to_hyphen)
 		try:
 			command_collection.add_subcommand(func, parent=parent)
 		except (SubcommandError, CommandCollectionError) as e:

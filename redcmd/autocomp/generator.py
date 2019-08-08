@@ -20,12 +20,12 @@ class Generator:
 			raise GenError('invalid command line: %s'%self._cmdline)
 
 		self._optiontree = None
-                self.filter_cmdline()
+		self.filter_cmdline()
 
 
-        def filter_cmdline(self):
-                if self._cmdline.startswith('./'):
-                    self._cmdline = self._cmdline[2:]
+	def filter_cmdline(self):
+		if self._cmdline.startswith('./'):
+			self._cmdline = self._cmdline[2:]
 
 	
 	def load(self):
@@ -40,9 +40,9 @@ class Generator:
 	def gen(self):
 		words               = self._cmdline.split()
 		last_term           = self._last_term
-                last_term_n_words   = len(last_term.split())
+		last_term_n_words   = len(last_term.split())
 
-                del words[-last_term_n_words : ]
+		del words[-last_term_n_words : ]
 
 		if words[0] != self._optiontree.root.name:
 			raise GenError('command name: %s not valid for auto completion'%words[0])
@@ -108,21 +108,21 @@ class Generator:
 			if opt_val:
 			    opt_val = False
 			else:
-                                opt_var = get_opt(w)
-                                opt_seen.append(opt_var)
+				opt_var = get_opt(w)
+				opt_seen.append(opt_var)
 
-                                if opt_var is not None:
-                                        opt_val = True
-                                else:
-                                        pos_count += 1
+				if opt_var is not None:
+						opt_val = True
+				else:
+						pos_count += 1
 
 			if pos_count > len(positionals):
 				return []
 
-                is_quote = lambda c : c in ['"', "'"]
-                if len(last_term) > 1:
-                    if is_quote(last_term[-1]):
-                        return []   # nothing to complete, since, the user has ended the value with a quote
+		is_quote = lambda c : c in ['"', "'"]
+		if len(last_term) > 1:
+			if is_quote(last_term[-1]):
+				return []   # nothing to complete, since, the user has ended the value with a quote
 
 		if opt_val:				# last word is an incomplete optional arg value
 			return sorted(get_completions(last_term, opt_var.filters))

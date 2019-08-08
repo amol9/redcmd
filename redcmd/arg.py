@@ -20,7 +20,7 @@ class Arg(object):
 		self.nargs 	= nargs
 		self.short	= short
 		self.hidden	= hidden
-                self.completer  = completer
+		self.completer  = completer
 
 
 	def convert(self, value, name='value'):

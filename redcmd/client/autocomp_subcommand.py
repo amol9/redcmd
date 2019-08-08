@@ -6,12 +6,13 @@ from ..decorators import subcmd
 from ..exc import CommandError
 from ..autocomp.generator import Generator, GenError
 from ..autocomp.installer import Installer, InstallError
-from .redcmd_internal_subcommand import RedcmdInternalSubcommand
+from .redcmd_internal_subcommand import RedcmdInternal
 from ..datastore import DataStore, DataStoreError
 from .. import const
+from ..subcommand import InternalSubcommand
 
 
-class AutocompSubcommand(RedcmdInternalSubcommand):
+class AutocompSubcommand(RedcmdInternal, InternalSubcommand):
 
 	@subcmd
 	def autocomp(self):

@@ -1,2 +1,2 @@
 from .autocomp_subcommand import AutocompSubcommand
-
+from .init_subcommand import InitSubcommand

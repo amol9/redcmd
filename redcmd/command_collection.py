@@ -10,7 +10,7 @@ from .commandparser import CommandParser
 from .arg import Arg, make_filter
 from .cmdfunc import CmdFunc
 from .maincommand import Maincommand
-from .subcommand import Subcommand, InternalSubcommand
+from .subcommand import Subcommand, InternalSubcommand, RedcmdInternalSubcommand
 from .exc import CommandError, CommandCollectionError
 from . import const
 from .autocomp.option_tree import OptionTree, OptionTreeError
@@ -63,12 +63,12 @@ class _CommandCollection(object):
 
 
 	def set_details(self, prog=None, description=None, version=None, _to_hyphen=False):
-                if prog is not None:
-		        self._cmdparser.prog = prog 
-                if description is not None:
-		        self._cmdparser.description = description
-                if version is not None:
-        		self._version = version
+		if prog is not None:
+			self._cmdparser.prog = prog 
+		if description is not None:
+			self._cmdparser.description = description
+		if version is not None:
+			self._version = version
 		self._to_hyphen = _to_hyphen
 
 		if version is not None:
@@ -145,7 +145,7 @@ class _CommandCollection(object):
 
 	def add_internal_commands(self):
 		self._internal_cmdparser = CommandParser(formatter_class=CommandHelpFormatter)
-		self.add_subcommand_classes(InternalSubcommand, self._internal_cmdparser)
+		self.add_subcommand_classes(RedcmdInternalSubcommand, self._internal_cmdparser)
 
 
 	def add_subcommand_classes(self, cls, parser, parent_add_args=None, parent_subcmds=[]):
@@ -350,7 +350,7 @@ class _CommandCollection(object):
 					default = arg_default.default
 					nargs 	= arg_default.nargs
 					hidden	= arg_default.hidden
-                                        completer = arg_default.completer
+					completer = arg_default.completer
 
 					if arg_default.pos:
 						if default is not None:

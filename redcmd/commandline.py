@@ -7,7 +7,7 @@ from .client.autocomp_subcommand import *
 from .command_collection import CommandCollection
 from .autocomp.installer import Installer, InstallError
 from .exc import CommandCollectionError, CommandLineError
-from .client.redcmd_internal_subcommand import RedcmdInternalSubcommand
+from .subcommand import InternalSubcommand
 from .move_collection import MoveCollection
 from .autocomp.shell_script_installer_factory import platform_supported
 
@@ -44,7 +44,7 @@ class CommandLine(object):
 		try:
 			subcmd_cls = None
 			if sys.argv[0].endswith('redcmd'):
-				subcmd_cls = RedcmdInternalSubcommand
+				subcmd_cls = InternalSubcommand
 
 			self._command_collection.add_commands(subcmd_cls=subcmd_cls)
 		except CommandCollectionError as e:

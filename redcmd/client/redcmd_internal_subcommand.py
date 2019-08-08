@@ -1,9 +1,9 @@
 
 from ..decorators import subcmd
-from ..subcommand import InternalSubcommand
+from ..subcommand import RedcmdInternalSubcommand
 
 
-class RedcmdInternalSubcommand(InternalSubcommand):
+class RedcmdInternal(RedcmdInternalSubcommand):
 
 	@subcmd
 	def redcmdinternal(self):

@@ -1,4 +1,4 @@
-__all__ = ['Subcommand']
+__all__ = ['Subcommand', 'InternalSubcommand', 'RedcmdInternalSubcommand']
 
 
 # placeholder class for subcommand classes to derive from
@@ -9,3 +9,6 @@ class Subcommand(object):
 class InternalSubcommand(object):
 	pass
 	
+# placeholder class for redcmd internal subcommand classes
+class RedcmdInternalSubcommand(object):
+	pass
